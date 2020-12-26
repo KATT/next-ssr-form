@@ -40,7 +40,6 @@ export default function Home({
                 <input
                   type='text'
                   name='from'
-                  required
                   defaultValue={!formData?.success ? formData?.input.from : ""}
                 />
                 {formData?.error?.fieldErrors.from && (
@@ -60,7 +59,6 @@ export default function Home({
                 <br />
                 <textarea
                   name='message'
-                  required
                   defaultValue={
                     !formData?.success ? formData?.input.message : ""
                   }
@@ -86,8 +84,8 @@ export default function Home({
           <ul>
             <li>You should probably not do this.</li>
             <li>
-              Data is reset whenever db is reset or when Vercel's lambda gets
-              cold.
+              Data is reset whenever app is restarted or when Vercel's lambda
+              gets cold.
             </li>
             <li>Try disabling JS in your browser. Page still works fine.</li>
           </ul>
