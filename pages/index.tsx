@@ -1,4 +1,4 @@
-import { createPost } from "forms/posts";
+import { createPost } from "forms/createPostSchema.server";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
 import { getPostBody } from "utils/getPostBody";

@@ -1,16 +1,18 @@
 import { ErrorMessage, Field, Form, Formik, FormikErrors } from "formik";
-import { createPost, createPostDefaultValues } from "forms/posts";
+import { createPost } from "forms/createPostSchema.server";
+import { createPostDefaultValues } from "forms/createPostSchema";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
 import { getPostBody } from "utils/getPostBody";
 import { DB } from "./api/db";
+import { useState } from "react";
+import { deserialize, parse } from "superjson";
+import { SuperJSONResult } from "superjson/dist/types";
 
-export default function Home({
-  posts,
-  formData,
-  createPostDefaultValues,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
+export default function Home({ posts, formData }: Props) {
   const router = useRouter();
+  const [state, setState] = useState<"initial" | "error" | "success">();
   return (
     <>
       <h1>Formik</h1>
@@ -37,15 +39,39 @@ export default function Home({
         }}
         onSubmit={async (values, actions) => {
           console.log("values", values);
-          await fetch(router.asPath, {
-            method: "post",
-            body: JSON.stringify(values),
-          });
+          setState("initial");
+          const res = await fetch(
+            `_next/data/development${router.asPath}.json`,
+            {
+              method: "post",
+              body: JSON.stringify(values),
+              headers: {
+                "content-type": "application/json",
+              },
+            },
+          );
+          if (!res.ok) {
+            setState("error");
+            return;
+          }
+          const json: {
+            pageProps: SuperJSONResult;
+          } = await res.json();
+          console.log("res json", json);
+          const result = deserialize(json.pageProps) as Props;
+          console.log("res result", result);
+          if (!result.formData?.success) {
+            console.error("Error", result.formData);
+            setState("error");
+            return;
+          }
+
           await router.replace(router.asPath); // trigger refresh
+          setState("success");
           actions.resetForm();
         }}
       >
-        {({ isSubmitting }) => (
+        {({ isSubmitting, errors }) => (
           <Form action={router.asPath}>
             <p className='field'>
               <label htmlFor='from'>Name</label>
@@ -72,6 +98,13 @@ export default function Home({
                 Submit
               </button>
             </p>
+
+            {state === "success" && (
+              <p className='success'>Yay! Your entry was added</p>
+            )}
+            {state === "error" && (
+              <p className='error'>Your message was not added.</p>
+            )}
           </Form>
         )}
       </Formik>
@@ -91,11 +124,13 @@ export default function Home({
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const body = await getPostBody(ctx.req);
   const formData = body ? await createPost(body as any) : null;
-  
-  console.log("formData", JSON.stringify(formData, null, 4));
+
+  console.log("headers", ctx.req.headers);
+  if (formData && ctx.req.headers["content-type"] === "application/json") {
+    console.log("responding with json", formData);
+  }
   return {
     props: {
-      createPostDefaultValues,
       posts: await DB.getAllPosts(),
       formData,
     },

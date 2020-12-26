@@ -1,17 +1,9 @@
-import * as z from "zod";
 import { assertOnServer } from "utils/assertOnServer";
 import { DB } from "pages/api/db";
+import { createPostSchemaType, createPostSchema } from "./createPostSchema";
 
-export const createPostSchema = z.object({
-  message: z.string().min(10),
-  from: z.string().min(2),
-});
-export type createPostSchemaType = z.infer<typeof createPostSchema>;
+assertOnServer("createPostSchema.server.tsx");
 
-export const createPostDefaultValues: createPostSchemaType = {
-  message: '',
-  from: '',
-}
 export async function createPost(input: createPostSchemaType) {
   assertOnServer("createPost");
 
