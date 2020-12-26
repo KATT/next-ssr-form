@@ -7,6 +7,7 @@ import { createPost } from "forms/createPostSchema.server";
 import { formikZodValidate, getInitialTouched } from "forms/zodFormik";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
+import Link from "next/link";
 import nProgress from "nprogress";
 import { useEffect, useState } from "react";
 import { deserialize } from "superjson";
@@ -43,7 +44,18 @@ export default function Home(props: Props) {
     : createPostDefaultValues;
   return (
     <>
-      <h1>Formik</h1>
+      <h1>Formik SSR</h1>
+      <p>
+        Uses Formik to HTTP post to Next.js' special page endpoint (
+        <code>_next/data/[..]/[..].json</code>) then triggers a page data to be
+        reloaded by using <code>router.replace()</code> to itself.
+      </p>
+      <p>
+        If JavaScript is not enabled, it does pretty much the same as the{" "}
+        <Link href='/'>Vanilla</Link>-example and propagates error feedback
+        through page props.
+      </p>
+
       <h2>My guestbook</h2>
       {props.posts.map((item) => (
         <article key={item.id}>
@@ -51,9 +63,7 @@ export default function Home(props: Props) {
             From {item.from} at {item.createdAt.toLocaleDateString("sv-SE")}{" "}
             {item.createdAt.toLocaleTimeString("sv-SE").substr(0, 5)}:
           </strong>
-          <p className='message'>
-            <em>{item.message}</em>
-          </p>
+          <p className='message'>{item.message}</p>
         </article>
       ))}
       <h3>Add post</h3>
@@ -143,15 +153,6 @@ export default function Home(props: Props) {
           </Form>
         )}
       </Formik>
-      <h3>Notes</h3>
-      <ul>
-        <li>You should definitely not do this.</li>
-        <li>
-          Data is reset whenever app is restarted or when Vercel's lambda gets
-          cold.
-        </li>
-        <li>Try disabling JS in your browser. Page still works fine.</li>
-      </ul>
     </>
   );
 }

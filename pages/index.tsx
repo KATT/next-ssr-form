@@ -11,6 +11,12 @@ export default function Home(props: Props) {
   return (
     <>
       <h1>Vanilla</h1>
+      <p>
+        Uses a standard <code>&lt;form&gt;</code> with the <code>action</code>
+        -attribute to post to the same page. Form data is handled in{" "}
+        <code>getServerSideProps</code> and feedback is passed through page
+        props.
+      </p>
       <h2>My Guestbook</h2>
       {props.posts.map((item) => (
         <article key={item.id}>
@@ -18,9 +24,7 @@ export default function Home(props: Props) {
             From {item.from} at {item.createdAt.toLocaleDateString("sv-SE")}{" "}
             {item.createdAt.toLocaleTimeString("sv-SE").substr(0, 5)}:
           </strong>
-          <p className='message'>
-            <em>{item.message}</em>
-          </p>
+          <p className='message'>{item.message}</p>
         </article>
       ))}
       <h3>Add post</h3>
@@ -75,15 +79,6 @@ export default function Home(props: Props) {
           <p className='error'>Your message was not added.</p>
         )}
       </form>
-      <h3>Notes</h3>
-      <ul>
-        <li>You should probably not do this.</li>
-        <li>
-          Data is reset whenever app is restarted or when Vercel's lambda gets
-          cold.
-        </li>
-        <li>Try disabling JS in your browser. Page still works fine.</li>
-      </ul>
     </>
   );
 }

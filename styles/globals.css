@@ -2,8 +2,16 @@ html,
 body {
   padding: 0;
   margin: 0;
-  font-family: monospace;
+  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
   background: #ddd;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: monospace;
 }
 
 * {
@@ -18,9 +26,10 @@ body {
   background: white;
 }
 
-header {
+.callout {
   border-bottom: 1px solid #ddd;
   margin-bottom: 20px;
+  padding-bottom: 20px;
 }
 footer {
   margin-top: 20px;
@@ -75,4 +84,11 @@ footer p {
 }
 .error {
   color: red;
+}
+
+code {
+  background: #eee;
+  padding: 2px;
+  margin: -2px;
+  display: inline-block;
 }
