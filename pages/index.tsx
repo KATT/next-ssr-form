@@ -44,7 +44,9 @@ export default function Home({
                   defaultValue={!formData?.success ? formData?.input.from : ""}
                 />
                 {formData?.error?.fieldErrors.from && (
-                  <p className='error'> </p>
+                  <div className='error'>
+                    {formData?.error?.fieldErrors.from}
+                  </div>
                 )}
               </label>
             </p>
@@ -63,16 +65,20 @@ export default function Home({
                     !formData?.success ? formData?.input.message : ""
                   }
                 />
+                {formData?.error?.fieldErrors.message && (
+                  <div className='error'>
+                    {formData?.error?.fieldErrors.message}
+                  </div>
+                )}
               </label>
             </p>
             <p>
               <input type='submit' />
+              {formData?.success && (
+                <p className='success'>Yay! Your entry was added</p>
+              )}
               {formData?.error && (
-                <p>
-                  <strong>Full error:</strong>
-                  <br />
-                  <pre>{JSON.stringify(formData.error, null, 4)}</pre>
-                </p>
+                <p className='error'>Your message was not added.</p>
               )}
             </p>
           </form>
@@ -114,7 +120,14 @@ export default function Home({
         .field--error textarea {
           border-color: red;
         }
-        .field-error label {
+        .field-error {
+          color: red;
+        }
+        .success {
+          color: green;
+          font-style: italic;
+        }
+        .error {
           color: red;
         }
       `}</style>

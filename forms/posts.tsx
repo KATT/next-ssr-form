@@ -3,7 +3,7 @@ import { assertOnServer } from "utils/assertOnServer";
 import { DB } from "pages/api/db";
 
 export const createPostSchema = z.object({
-  message: z.string().min(4),
+  message: z.string().min(10),
   from: z.string().min(2),
 });
 export type createPostSchemaType = z.infer<typeof createPostSchema>;
