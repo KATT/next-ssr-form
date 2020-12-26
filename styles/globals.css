@@ -6,11 +6,57 @@ body {
   background: #ddd;
 }
 
-a {
-  /* color: inherit;
-  text-decoration: none; */
-}
-
 * {
   box-sizing: border-box;
+}
+/* globals */
+.wrapper {
+  margin: 0 auto;
+  max-width: 768px;
+  padding: 20px;
+  margin: 20px auto;
+  background: white;
+}
+
+a.active {
+  color: #ccc;
+}
+nav {
+  border-bottom: 1px solid #ddd;
+}
+
+footer {
+  margin-top: 20px;
+  border-top: 1px solid #ddd;
+}
+/* page */
+article {
+  padding: 5px;
+}
+.message {
+  white-space: pre-line;
+}
+footer p {
+  margin-bottom: 0;
+}
+.field {
+}
+
+.field__error {
+  display: block;
+  color: red;
+}
+.field--error input,
+.field--error textarea {
+  border-color: red;
+}
+.field-error {
+  color: red;
+}
+.success {
+  color: green;
+  font-style: italic;
+}
+.error {
+  color: red;
 }
