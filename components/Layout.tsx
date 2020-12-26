@@ -13,15 +13,17 @@ export function Layout(props: { children: ReactNode }) {
   return (
     <>
       <div className='wrapper'>
-        <nav>
-          {routes.map(([to, title]) => (
-            <Link href={to} key={to}>
-              <a key={to} className={to === router.asPath ? "active" : ""}>
-                {title}
-              </a>
-            </Link>
-          ))}
-        </nav>
+        <header>
+          <nav>
+            {routes.map(([to, title]) => (
+              <Link href={to} key={to}>
+                <a key={to} className={to === router.asPath ? "active" : ""}>
+                  {title}
+                </a>
+              </Link>
+            ))}
+          </nav>
+        </header>
         <main>{props.children}</main>
         <footer>
           <p>

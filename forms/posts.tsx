@@ -8,6 +8,10 @@ export const createPostSchema = z.object({
 });
 export type createPostSchemaType = z.infer<typeof createPostSchema>;
 
+export const createPostDefaultValues: createPostSchemaType = {
+  message: '',
+  from: '',
+}
 export async function createPost(input: createPostSchemaType) {
   assertOnServer("createPost");
 

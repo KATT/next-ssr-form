@@ -11,8 +11,8 @@ export default function Home({
   const router = useRouter();
   return (
     <>
-      <h1>JS is PHP</h1>
-      <h2>My guestbook</h2>
+      <h1>Vanilla</h1>
+      <h2>My Guestbook</h2>
       {posts.map((item) => (
         <article key={item.id}>
           <strong>

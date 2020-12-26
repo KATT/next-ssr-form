@@ -18,16 +18,32 @@ body {
   background: white;
 }
 
-a.active {
-  color: #ccc;
-}
-nav {
+header {
   border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
 }
-
 footer {
   margin-top: 20px;
   border-top: 1px solid #ddd;
+}
+nav {
+  margin-bottom: 10px;
+}
+nav a {
+  display: inline-block;
+  font-weight: bold;
+  margin-right: 16px;
+  text-decoration: none;
+  color: #999;
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+nav a:hover {
+  background: #eee;
+}
+nav a.active {
+  color: black;
+  background: #ddd;
 }
 /* page */
 article {
