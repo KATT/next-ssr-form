@@ -82,6 +82,15 @@ export default function Home({
               )}
             </p>
           </form>
+          <h3>Notes</h3>
+          <ul>
+            <li>You should probably not do this.</li>
+            <li>
+              Data is reset whenever db is reset or when Vercel's lambda gets
+              cold.
+            </li>
+            <li>Try disabling JS in your browser. Page still works fine.</li>
+          </ul>
         </main>
         <footer>
           <p>
@@ -108,7 +117,7 @@ export default function Home({
           white-space: pre-line;
         }
         footer {
-          margin-top: 40px;
+          margin-top: 20px;
           border-top: 1px solid #ddd;
         }
         footer p {
