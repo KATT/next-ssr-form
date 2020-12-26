@@ -72,13 +72,13 @@ export default function Home({
             </p>
             <p>
               <input type='submit' />
-              {formData?.success && (
-                <p className='success'>Yay! Your entry was added</p>
-              )}
-              {formData?.error && (
-                <p className='error'>Your message was not added.</p>
-              )}
             </p>
+            {formData?.success && (
+              <p className='success'>Yay! Your entry was added</p>
+            )}
+            {formData?.error && (
+              <p className='error'>Your message was not added.</p>
+            )}
           </form>
           <h3>Notes</h3>
           <ul>
