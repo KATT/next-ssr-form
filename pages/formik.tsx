@@ -14,6 +14,7 @@ export default function Home(props: Props) {
   const router = useRouter();
   const [state, setState] = useState<"initial" | "error" | "success">();
   const { formData } = props;
+
   return (
     <>
       <h1>Formik</h1>
@@ -33,6 +34,7 @@ export default function Home(props: Props) {
 
       <Formik
         initialValues={formData?.input ?? createPostDefaultValues}
+        initialErrors={formData?.formikError}
         validate={(values) => {
           const errors: FormikErrors<typeof values> = {};
 
@@ -73,7 +75,7 @@ export default function Home(props: Props) {
         }}
       >
         {({ isSubmitting, errors }) => (
-          <Form>
+          <Form method='post'>
             <p className='field'>
               <label htmlFor='from'>Name</label>
               <br />
@@ -83,16 +85,19 @@ export default function Home(props: Props) {
                 component='span'
                 className='field__error'
               />
+              <br />
+              {errors.from && (
+                <span className='field__error'>{errors.from}</span>
+              )}
             </p>
             <p className='field'>
               <label htmlFor='message'>Message</label>
               <br />
               <Field type='textarea' name='message' as='textarea' />
-              <ErrorMessage
-                name='message'
-                component='span'
-                className='field__error'
-              />
+              <br />
+              {errors.from && (
+                <span className='field__error'>{errors.from}</span>
+              )}
             </p>
             <p>
               <button type='submit' disabled={isSubmitting}>
