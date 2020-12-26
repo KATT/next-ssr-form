@@ -7,7 +7,8 @@ import { createPost } from "forms/createPostSchema.server";
 import { formikZodValidate, getInitialTouched } from "forms/zodFormik";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
-import { useState } from "react";
+import nProgress from "nprogress";
+import { useEffect, useState } from "react";
 import { deserialize } from "superjson";
 import { SuperJSONResult } from "superjson/dist/types";
 import { getPostBody } from "utils/getPostBody";
@@ -28,6 +29,14 @@ export default function Home(props: Props) {
     }
     return "initial";
   });
+  useEffect(() => {
+    if (state === "submitting") {
+      nProgress.start();
+    }
+    return () => {
+      nProgress.done();
+    };
+  }, [state === "submitting"]);
 
   const initialValues = formData?.error
     ? formData.input

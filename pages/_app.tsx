@@ -4,21 +4,28 @@ import { useRouter } from "next/dist/client/router";
 import Head from "next/head";
 import React, { useEffect } from "react";
 import "../styles/globals.css";
+import "nprogress/nprogress.css";
+import nProgress from "nprogress";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   useEffect(() => {
-    const handleRouteChange = (url: string, opts: any) => {
-      console.log(`App is changing to ${url} with opts`, opts);
+    const handleRouteChangeStart = (url: string, opts: any) => {
+      nProgress.start();
+    };
+    const handleRouteChangeComplete = (url: string, opts: any) => {
+      nProgress.done();
     };
 
-    router.events.on("routeChangeStart", handleRouteChange);
+    router.events.on("routeChangeStart", handleRouteChangeStart);
+    router.events.on("routeChangeComplete", handleRouteChangeComplete);
 
     // If the component is unmounted, unsubscribe
     // from the event with the `off` method:
     return () => {
-      router.events.off("routeChangeStart", handleRouteChange);
+      router.events.off("routeChangeStart", handleRouteChangeStart);
+      router.events.off("routeChangeComplete", handleRouteChangeComplete);
     };
   }, []);
   return (
