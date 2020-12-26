@@ -10,14 +10,15 @@ import { deserialize, parse } from "superjson";
 import { SuperJSONResult } from "superjson/dist/types";
 
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
-export default function Home({ posts, formData }: Props) {
+export default function Home(props: Props) {
   const router = useRouter();
   const [state, setState] = useState<"initial" | "error" | "success">();
+  const { formData } = props;
   return (
     <>
       <h1>Formik</h1>
       <h2>My guestbook</h2>
-      {posts.map((item) => (
+      {props.posts.map((item) => (
         <article key={item.id}>
           <strong>
             From {item.from} at {item.createdAt.toLocaleDateString("sv-SE")}{" "}
@@ -41,7 +42,7 @@ export default function Home({ posts, formData }: Props) {
           console.log("values", values);
           setState("initial");
           const res = await fetch(
-            `_next/data/development${router.asPath}.json`,
+            `${props.postEndpointPrefix}${router.asPath}.json`,
             {
               method: "post",
               body: JSON.stringify(values),
@@ -72,7 +73,7 @@ export default function Home({ posts, formData }: Props) {
         }}
       >
         {({ isSubmitting, errors }) => (
-          <Form action={router.asPath}>
+          <Form>
             <p className='field'>
               <label htmlFor='from'>Name</label>
               <br />
@@ -125,12 +126,13 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const body = await getPostBody(ctx.req);
   const formData = body ? await createPost(body as any) : null;
 
-  console.log("headers", ctx.req.headers);
-  if (formData && ctx.req.headers["content-type"] === "application/json") {
-    console.log("responding with json", formData);
-  }
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA;
+  const postEndpointPrefix = sha
+    ? `/_next/data/${sha}`
+    : "/_next/data/development";
   return {
     props: {
+      postEndpointPrefix,
       posts: await DB.getAllPosts(),
       formData,
     },

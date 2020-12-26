@@ -4,9 +4,8 @@ import { useRouter } from "next/dist/client/router";
 import { getPostBody } from "utils/getPostBody";
 import { DB } from "../forms/db";
 
-export default function Home(
-  props: InferGetServerSidePropsType<typeof getServerSideProps>,
-) {
+type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
+export default function Home(props: Props) {
   const router = useRouter();
   const { formData } = props;
   return (
@@ -27,7 +26,7 @@ export default function Home(
       ))}
       <h3>Add post</h3>
 
-      <form action={router.asPath} method='post'>
+      <form action='' method='post'>
         <p
           className={`field ${
             formData?.error?.fieldErrors["from"] ? "field--error" : ""
