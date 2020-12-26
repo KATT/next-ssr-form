@@ -1,13 +1,17 @@
-import { ErrorMessage, Field, Form, Formik, FormikErrors } from "formik";
+import { ErrorMessage, Field, Form, Formik } from "formik";
+import {
+  createPostDefaultValues,
+  createPostSchema,
+} from "forms/createPostSchema";
 import { createPost } from "forms/createPostSchema.server";
-import { createPostDefaultValues } from "forms/createPostSchema";
+import { formikZodValidate, getInitialTouched } from "forms/zodFormik";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
+import { useState } from "react";
+import { deserialize } from "superjson";
+import { SuperJSONResult } from "superjson/dist/types";
 import { getPostBody } from "utils/getPostBody";
 import { DB } from "../forms/db";
-import { useState } from "react";
-import { deserialize, parse } from "superjson";
-import { SuperJSONResult } from "superjson/dist/types";
 
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 export default function Home(props: Props) {
@@ -15,6 +19,7 @@ export default function Home(props: Props) {
   const [state, setState] = useState<"initial" | "error" | "success">();
   const { formData } = props;
 
+  const initialValues = formData?.input || createPostDefaultValues;
   return (
     <>
       <h1>Formik</h1>
@@ -33,13 +38,10 @@ export default function Home(props: Props) {
       <h3>Add post</h3>
 
       <Formik
-        initialValues={formData?.input ?? createPostDefaultValues}
+        initialValues={initialValues}
         initialErrors={formData?.formikError}
-        validate={(values) => {
-          const errors: FormikErrors<typeof values> = {};
-
-          return errors;
-        }}
+        initialTouched={getInitialTouched(initialValues, formData?.formikError)}
+        validate={formikZodValidate(createPostSchema)}
         onSubmit={async (values, actions) => {
           console.log("values", values);
           setState("initial");
@@ -74,30 +76,29 @@ export default function Home(props: Props) {
           actions.resetForm();
         }}
       >
-        {({ isSubmitting, errors }) => (
+        {({ isSubmitting, errors, touched }) => (
           <Form method='post'>
             <p className='field'>
               <label htmlFor='from'>Name</label>
               <br />
               <Field type='text' name='from' />
+              <br />
               <ErrorMessage
                 name='from'
                 component='span'
                 className='field__error'
               />
-              <br />
-              {errors.from && (
-                <span className='field__error'>{errors.from}</span>
-              )}
             </p>
             <p className='field'>
               <label htmlFor='message'>Message</label>
               <br />
               <Field type='textarea' name='message' as='textarea' />
               <br />
-              {errors.from && (
-                <span className='field__error'>{errors.from}</span>
-              )}
+              <ErrorMessage
+                name='message'
+                component='span'
+                className='field__error'
+              />
             </p>
             <p>
               <button type='submit' disabled={isSubmitting}>

@@ -1,7 +1,7 @@
 import { assertOnServer } from "utils/assertOnServer";
 import { DB } from "forms/db";
 import { createPostSchemaType, createPostSchema } from "./createPostSchema";
-import { zodErrorToFormikError } from "./zodErrorToFormikError";
+import { zodErrorToFormikError } from "./zodFormik";
 
 assertOnServer("createPostSchema.server.tsx");
 
@@ -16,7 +16,7 @@ export async function createPost(input: createPostSchemaType) {
       input,
       success: false as const,
       error: err.flatten(),
-      formikError: zodErrorToFormikError(err),
+      formikError: zodErrorToFormikError<createPostSchemaType>(err),
     };
   }
   const instance = await DB.createPost(parsed.data);
