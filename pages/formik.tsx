@@ -17,7 +17,9 @@ type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 export default function Home(props: Props) {
   const router = useRouter();
   const { formData } = props;
-  const [state, setState] = useState<"initial" | "error" | "success">(() => {
+  const [state, setState] = useState<
+    "initial" | "submitting" | "error" | "success"
+  >(() => {
     if (formData?.success) {
       return "success";
     }
@@ -53,18 +55,16 @@ export default function Home(props: Props) {
         initialTouched={getInitialTouched(initialValues, formData?.formikError)}
         validate={formikZodValidate(createPostSchema)}
         onSubmit={async (values, actions) => {
-          console.log("values", values);
-          setState("initial");
-          const res = await fetch(
-            `${props.postEndpointPrefix}${router.asPath}.json`,
-            {
-              method: "post",
-              body: JSON.stringify(values),
-              headers: {
-                "content-type": "application/json",
-              },
+          setState("submitting");
+          const path = `${props.postEndpointPrefix}${router.asPath}.json`;
+          console.log({ values, path });
+          const res = await fetch(path, {
+            method: "post",
+            body: JSON.stringify(values),
+            headers: {
+              "content-type": "application/json",
             },
-          );
+          });
           if (!res.ok) {
             setState("error");
             return;
@@ -86,12 +86,16 @@ export default function Home(props: Props) {
           actions.resetForm();
         }}
       >
-        {({ isSubmitting, errors, touched }) => (
-          <Form method='post'>
+        {() => (
+          <Form method='post' action=''>
             <p className='field'>
               <label htmlFor='from'>Name</label>
               <br />
-              <Field type='text' name='from' />
+              <Field
+                type='text'
+                name='from'
+                disabled={state === "submitting"}
+              />
               <br />
               <ErrorMessage
                 name='from'
@@ -102,7 +106,12 @@ export default function Home(props: Props) {
             <p className='field'>
               <label htmlFor='message'>Message</label>
               <br />
-              <Field type='textarea' name='message' as='textarea' />
+              <Field
+                type='textarea'
+                name='message'
+                as='textarea'
+                disabled={state === "submitting"}
+              />
               <br />
               <ErrorMessage
                 name='message'
@@ -111,7 +120,7 @@ export default function Home(props: Props) {
               />
             </p>
             <p>
-              <button type='submit' disabled={isSubmitting}>
+              <button type='submit' disabled={state === "submitting"}>
                 Submit
               </button>
             </p>

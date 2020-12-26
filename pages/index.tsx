@@ -10,7 +10,6 @@ export default function Home(props: Props) {
   const { formData } = props;
   return (
     <>
-      <pre>{JSON.stringify(props, null, 4)}</pre>
       <h1>Vanilla</h1>
       <h2>My Guestbook</h2>
       {props.posts.map((item) => (
@@ -97,8 +96,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     props: {
       posts: await DB.getAllPosts(),
       formData,
-      __filename,
-      __dirname,
     },
   };
 };

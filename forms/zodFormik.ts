@@ -25,7 +25,7 @@ export function formikZodValidate<
     }
 
     const errs = zodErrorToFormikError(res.error);
-    console.log("errs", errs);
+
     return errs;
   };
 }
