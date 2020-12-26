@@ -11,7 +11,6 @@ export async function getPostBody(req: IncomingMessage) {
       body += chunk;
     });
     req.on("end", () => {
-      console.log("end", body);
       resolve(body ? parse(body) : null);
     });
   });
