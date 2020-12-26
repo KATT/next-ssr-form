@@ -1,147 +1,89 @@
-import { createPost } from "forms/posts";
+import { createPost } from "forms/createPostSchema.server";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
 import { getPostBody } from "utils/getPostBody";
-import { DB } from "./api/db";
+import { DB } from "../forms/db";
 
-export default function Home({
-  posts,
-  formData,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
+export default function Home(props: Props) {
   const router = useRouter();
+  const { formData } = props;
   return (
     <>
-      <div className='wrapper'>
-        <main>
-          <h1>JS is PHP</h1>
-          <h2>My guestbook</h2>
-          {posts.map((item) => (
-            <article key={item.id}>
-              <strong>
-                From {item.from} at {item.createdAt.toLocaleDateString("sv-SE")}{" "}
-                {item.createdAt.toLocaleTimeString("sv-SE").substr(0, 5)}:
-              </strong>
-              <p className='message'>
-                <em>{item.message}</em>
-              </p>
-            </article>
-          ))}
-          <h3>Add post</h3>
-
-          <form action={router.asPath} method='post'>
-            <p
-              className={`field ${
-                formData?.error?.fieldErrors["from"] ? "field--error" : ""
-              }`}
-            >
-              <label>
-                Your name:
-                <br />
-                <input
-                  type='text'
-                  name='from'
-                  defaultValue={!formData?.success ? formData?.input.from : ""}
-                />
-                {formData?.error?.fieldErrors.from && (
-                  <span className='field__error'>
-                    {formData?.error?.fieldErrors.from}
-                  </span>
-                )}
-              </label>
-            </p>
-            <p
-              className={`field ${
-                formData?.error?.fieldErrors["message"] ? "field--error" : ""
-              }`}
-            >
-              <label>
-                Your message:
-                <br />
-                <textarea
-                  name='message'
-                  defaultValue={
-                    !formData?.success ? formData?.input.message : ""
-                  }
-                />
-                {formData?.error?.fieldErrors.message && (
-                  <span className='field__error'>
-                    {formData?.error?.fieldErrors.message}
-                  </span>
-                )}
-              </label>
-            </p>
-            <p>
-              <input type='submit' />
-            </p>
-            {formData?.success && (
-              <p className='success'>Yay! Your entry was added</p>
-            )}
-            {formData?.error && (
-              <p className='error'>Your message was not added.</p>
-            )}
-          </form>
-          <h3>Notes</h3>
-          <ul>
-            <li>You should probably not do this.</li>
-            <li>
-              Data is reset whenever app is restarted or when Vercel's lambda
-              gets cold.
-            </li>
-            <li>Try disabling JS in your browser. Page still works fine.</li>
-          </ul>
-        </main>
-        <footer>
-          <p>
-            Made by <a href='https://twitter.com/alexdotjs'>@alexdotjs</a>.
-            Source at{" "}
-            <a href='https://github.com/KATT/js-is-php'>
-              github.com/KATT/js-is-php
-            </a>
+      <h1>Vanilla</h1>
+      <h2>My Guestbook</h2>
+      {props.posts.map((item) => (
+        <article key={item.id}>
+          <strong>
+            From {item.from} at {item.createdAt.toLocaleDateString("sv-SE")}{" "}
+            {item.createdAt.toLocaleTimeString("sv-SE").substr(0, 5)}:
+          </strong>
+          <p className='message'>
+            <em>{item.message}</em>
           </p>
-        </footer>
-      </div>
-      <style jsx>{`
-        .wrapper {
-          margin: 0 auto;
-          max-width: 768px;
-          padding: 20px;
-          margin: 20px auto;
-          background: white;
-        }
-        article {
-          padding: 5px;
-        }
-        .message {
-          white-space: pre-line;
-        }
-        footer {
-          margin-top: 20px;
-          border-top: 1px solid #ddd;
-        }
-        footer p {
-          margin-bottom: 0;
-        }
-        .field {
-        }
-        .field__error {
-          display: block;
-          color: red;
-        }
-        .field--error input,
-        .field--error textarea {
-          border-color: red;
-        }
-        .field-error {
-          color: red;
-        }
-        .success {
-          color: green;
-          font-style: italic;
-        }
-        .error {
-          color: red;
-        }
-      `}</style>
+        </article>
+      ))}
+      <h3>Add post</h3>
+
+      <form action='' method='post'>
+        <p
+          className={`field ${
+            formData?.error?.fieldErrors["from"] ? "field--error" : ""
+          }`}
+        >
+          <label>
+            Your name:
+            <br />
+            <input
+              type='text'
+              name='from'
+              defaultValue={!formData?.success ? formData?.input.from : ""}
+            />
+            {formData?.error?.fieldErrors.from && (
+              <span className='field__error'>
+                {formData?.error?.fieldErrors.from}
+              </span>
+            )}
+          </label>
+        </p>
+        <p
+          className={`field ${
+            formData?.error?.fieldErrors["message"] ? "field--error" : ""
+          }`}
+        >
+          <label>
+            Your message:
+            <br />
+            <textarea
+              name='message'
+              defaultValue={!formData?.success ? formData?.input.message : ""}
+            />
+            {formData?.error?.fieldErrors.message && (
+              <span className='field__error'>
+                {formData?.error?.fieldErrors.message}
+              </span>
+            )}
+          </label>
+        </p>
+        <p>
+          <input type='submit' />
+        </p>
+        {formData?.success && (
+          <p className='success'>Yay! Your entry was added</p>
+        )}
+        {formData?.error && (
+          <p className='error'>Your message was not added.</p>
+        )}
+      </form>
+      <h3>Notes</h3>
+      <ul>
+        <li>You should probably not do this.</li>
+        <li>
+          Data is reset whenever app is restarted or when Vercel's lambda gets
+          cold.
+        </li>
+        <li>Try disabling JS in your browser. Page still works fine.</li>
+      </ul>
     </>
   );
 }

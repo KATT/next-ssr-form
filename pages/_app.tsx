@@ -1,3 +1,4 @@
+import { Layout } from "components/Layout";
 import type { AppProps } from "next/app";
 import { useRouter } from "next/dist/client/router";
 import Head from "next/head";
@@ -27,8 +28,9 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name='viewport' content='initial-scale=1.0, width=device-width' />
         <title>JS is PHP</title>
       </Head>
-
-      <Component {...pageProps} />
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
     </>
   );
 }
