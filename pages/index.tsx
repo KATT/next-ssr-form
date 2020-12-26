@@ -4,16 +4,17 @@ import { useRouter } from "next/dist/client/router";
 import { getPostBody } from "utils/getPostBody";
 import { DB } from "../forms/db";
 
-export default function Home({
-  posts,
-  formData,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Home(
+  props: InferGetServerSidePropsType<typeof getServerSideProps>,
+) {
   const router = useRouter();
+  const { formData } = props;
   return (
     <>
+      <pre>{JSON.stringify(props, null, 4)}</pre>
       <h1>Vanilla</h1>
       <h2>My Guestbook</h2>
-      {posts.map((item) => (
+      {props.posts.map((item) => (
         <article key={item.id}>
           <strong>
             From {item.from} at {item.createdAt.toLocaleDateString("sv-SE")}{" "}
@@ -97,6 +98,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     props: {
       posts: await DB.getAllPosts(),
       formData,
+      __filename,
+      __dirname,
     },
   };
 };
