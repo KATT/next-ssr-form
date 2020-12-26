@@ -87,7 +87,7 @@ export default function Home(props: Props) {
         }}
       >
         {() => (
-          <Form method='post' action=''>
+          <Form method='post' action={router.asPath}>
             <p className='field'>
               <label htmlFor='from'>Name</label>
               <br />
