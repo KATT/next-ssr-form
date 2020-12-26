@@ -16,10 +16,20 @@ import { DB } from "../forms/db";
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 export default function Home(props: Props) {
   const router = useRouter();
-  const [state, setState] = useState<"initial" | "error" | "success">();
   const { formData } = props;
+  const [state, setState] = useState<"initial" | "error" | "success">(() => {
+    if (formData?.success) {
+      return "success";
+    }
+    if (formData?.error) {
+      return "error";
+    }
+    return "initial";
+  });
 
-  const initialValues = formData?.input || createPostDefaultValues;
+  const initialValues = formData?.error
+    ? formData.input
+    : createPostDefaultValues;
   return (
     <>
       <h1>Formik</h1>
@@ -117,7 +127,7 @@ export default function Home(props: Props) {
       </Formik>
       <h3>Notes</h3>
       <ul>
-        <li>You should probably not do this.</li>
+        <li>You should definitely not do this.</li>
         <li>
           Data is reset whenever app is restarted or when Vercel's lambda gets
           cold.
