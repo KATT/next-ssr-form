@@ -43,9 +43,9 @@ export default function Home({
                   defaultValue={!formData?.success ? formData?.input.from : ""}
                 />
                 {formData?.error?.fieldErrors.from && (
-                  <div className='error'>
+                  <span className='field__error'>
                     {formData?.error?.fieldErrors.from}
-                  </div>
+                  </span>
                 )}
               </label>
             </p>
@@ -64,9 +64,9 @@ export default function Home({
                   }
                 />
                 {formData?.error?.fieldErrors.message && (
-                  <div className='error'>
+                  <span className='field__error'>
                     {formData?.error?.fieldErrors.message}
-                  </div>
+                  </span>
                 )}
               </label>
             </p>
@@ -122,6 +122,10 @@ export default function Home({
           margin-bottom: 0;
         }
         .field {
+        }
+        .field__error {
+          display: block;
+          color: red;
         }
         .field--error input,
         .field--error textarea {
