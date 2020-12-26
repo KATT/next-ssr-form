@@ -1,55 +1,135 @@
-import Head from "next/head";
-export default function Home() {
+import { createPost } from "forms/posts";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { useRouter } from "next/dist/client/router";
+import { getPostBody } from "utils/getPostBody";
+import { DB } from "./api/db";
+
+export default function Home({
+  posts,
+  formData,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const router = useRouter();
   return (
-    <div>
-      <Head>
-        <title>Create Next App</title>
-        <link rel='icon' href='/favicon.ico' />
-      </Head>
+    <>
+      <div className='wrapper'>
+        <main>
+          <h1>JS is PHP</h1>
+          <h2>My guestbook</h2>
+          {posts.map((item) => (
+            <article key={item.id}>
+              <strong>
+                From {item.from} at {item.createdAt.toLocaleDateString("sv-SE")}{" "}
+                {item.createdAt.toLocaleTimeString("sv-SE").substr(0, 5)}:
+              </strong>
+              <p className='message'>
+                <em>{item.message}</em>
+              </p>
+            </article>
+          ))}
+          <h3>Add post</h3>
 
-      <main>
-        <h1>
-          Welcome to <a href='https://nextjs.org'>Next.js!</a>
-        </h1>
-
-        <p>
-          Get started by editing <code>pages/index.js</code>
-        </p>
-
-        <div>
-          <a href='https://nextjs.org/docs'>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href='https://nextjs.org/learn'>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a href='https://github.com/vercel/next.js/tree/master/examples'>
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a href='https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app'>
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
+          <form action={router.asPath} method='post'>
+            <p
+              className={`field ${
+                formData?.error?.fieldErrors["from"] ? "field--error" : ""
+              }`}
+            >
+              <label>
+                Your name:
+                <br />
+                <input
+                  type='text'
+                  name='from'
+                  required
+                  defaultValue={!formData?.success ? formData?.input.from : ""}
+                />
+                {formData?.error?.fieldErrors.from && (
+                  <p className='error'> </p>
+                )}
+              </label>
             </p>
-          </a>
-        </div>
-      </main>
-
-      <footer>
-        <a
-          href='https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app'
-          target='_blank'
-          rel='noopener noreferrer'
-        >
-          Powered by <img src='/vercel.svg' alt='Vercel Logo' />
-        </a>
-      </footer>
-    </div>
+            <p
+              className={`field ${
+                formData?.error?.fieldErrors["message"] ? "field--error" : ""
+              }`}
+            >
+              <label>
+                Your message:
+                <br />
+                <textarea
+                  name='message'
+                  required
+                  defaultValue={
+                    !formData?.success ? formData?.input.message : ""
+                  }
+                />
+              </label>
+            </p>
+            <p>
+              <input type='submit' />
+              {formData?.error && (
+                <p>
+                  <strong>Full error:</strong>
+                  <br />
+                  <pre>{JSON.stringify(formData.error, null, 4)}</pre>
+                </p>
+              )}
+            </p>
+          </form>
+        </main>
+        <footer>
+          <p>
+            Made by <a href='https://twitter.com/alexdotjs'>@alexdotjs</a>.
+            Source at{" "}
+            <a href='https://github.com/KATT/js-is-php'>
+              github.com/KATT/js-is-php
+            </a>
+          </p>
+        </footer>
+      </div>
+      <style jsx>{`
+        .wrapper {
+          margin: 0 auto;
+          max-width: 768px;
+          padding: 20px;
+          margin: 20px auto;
+          background: white;
+        }
+        article {
+          padding: 5px;
+        }
+        .message {
+          white-space: pre-line;
+        }
+        footer {
+          margin-top: 40px;
+          border-top: 1px solid #ddd;
+        }
+        footer p {
+          margin-bottom: 0;
+        }
+        .field {
+        }
+        .field--error input,
+        .field--error textarea {
+          border-color: red;
+        }
+        .field-error label {
+          color: red;
+        }
+      `}</style>
+    </>
   );
 }
+
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const body = await getPostBody(ctx.req);
+  const formData = body ? await createPost(body as any) : null;
+
+  return {
+    props: {
+      posts: await DB.getAllPosts(),
+      formData,
+    },
+  };
+};
