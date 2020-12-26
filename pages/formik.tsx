@@ -4,7 +4,7 @@ import { createPostDefaultValues } from "forms/createPostSchema";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
 import { getPostBody } from "utils/getPostBody";
-import { DB } from "./api/db";
+import { DB } from "../forms/db";
 import { useState } from "react";
 import { deserialize, parse } from "superjson";
 import { SuperJSONResult } from "superjson/dist/types";

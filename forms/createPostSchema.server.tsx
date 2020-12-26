@@ -1,5 +1,5 @@
 import { assertOnServer } from "utils/assertOnServer";
-import { DB } from "pages/api/db";
+import { DB } from "forms/db";
 import { createPostSchemaType, createPostSchema } from "./createPostSchema";
 
 assertOnServer("createPostSchema.server.tsx");
