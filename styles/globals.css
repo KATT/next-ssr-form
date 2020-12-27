@@ -5,6 +5,11 @@ body {
   font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
   background: #ddd;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
 h1,
 h2,
 h3,
