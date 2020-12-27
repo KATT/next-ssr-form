@@ -33,7 +33,7 @@ export function formikZodValidate<
 export function getInitialTouched<
   TFormikErrors extends FormikErrors<TValues>,
   TValues
->(values: TValues, errors?: TFormikErrors) {
+>(errors?: TFormikErrors) {
   const res: Record<string, boolean> = {};
   if (!errors) {
     return res as FormikTouched<TValues>;

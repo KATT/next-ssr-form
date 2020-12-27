@@ -3,8 +3,9 @@ import Link from "next/link";
 import { ReactNode } from "react";
 
 const routes: [string, string][] = [
-  ["/", "Vanilla"],
+  ["/", "Default HTTP post"],
   ["/formik", "Formik"],
+  ["/formik-noscript", "Formik (works without js)"],
 ];
 
 export function Layout(props: { children: ReactNode }) {
@@ -24,6 +25,7 @@ export function Layout(props: { children: ReactNode }) {
               Validates and adds to the db on the server with <code>/api</code>
               -endpoints.
             </li>
+            <li>Reuses same yup/zod schemas in server &amp; client</li>
             <li>TypeScript types are inferred to client.</li>
             <li>
               Data is reset whenever app is restarted or when Vercel's lambda

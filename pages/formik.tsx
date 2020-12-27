@@ -1,59 +1,66 @@
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import {
   createPostDefaultValues,
-  createPostSchema,
+  createPostSchemaYup,
 } from "forms/createPostSchema";
-import { createPost } from "forms/createPostSchema.server";
-import { formikZodValidate, getInitialTouched } from "forms/zodFormik";
+import { createPostYup } from "forms/createPostSchema.server";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
-import Link from "next/link";
-import nProgress from "nprogress";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { deserialize } from "superjson";
 import { SuperJSONResult } from "superjson/dist/types";
 import { getPostBody } from "utils/getPostBody";
+import { ProgressBar } from "../components/ProgressBar";
 import { DB } from "../forms/db";
 
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
-export default function Home(props: Props) {
-  const router = useRouter();
-  const { formData } = props;
-  const [state, setState] = useState<
-    "initial" | "submitting" | "error" | "success"
-  >(() => {
-    if (formData?.success) {
-      return "success";
-    }
-    if (formData?.error) {
-      return "error";
-    }
-    return "initial";
-  });
-  useEffect(() => {
-    if (state === "submitting") {
-      nProgress.start();
-    }
-    return () => {
-      nProgress.done();
-    };
-  }, [state === "submitting"]);
 
-  const initialValues = formData?.error
-    ? formData.input
-    : createPostDefaultValues;
+function useIsMounted() {
+  const ref = useRef(false);
+  useEffect(() => {
+    ref.current = true;
+    return () => {
+      ref.current = false;
+    };
+  }, []);
+
+  return () => ref.current;
+}
+function useReloadPage() {
+  const router = useRouter();
+  const isMounted = useIsMounted();
+  return useCallback(async () => {
+    if (isMounted()) {
+      await router.replace({
+        pathname: router.asPath,
+      });
+    }
+  }, [router.asPath]);
+}
+export default function Home(props: Props) {
+  const reloadPage = useReloadPage();
+  const [feedback, setFeedback] = useState<
+    | null
+    | {
+        state: "success";
+      }
+    | {
+        state: "error";
+        err: Error;
+      }
+  >(null);
+
   return (
     <>
-      <h1>Formik SSR</h1>
+      <h1>Formik</h1>
       <p>
         Uses Formik to HTTP post to Next.js' special page endpoint (
         <code>_next/data/[..]/[..].json</code>) then triggers a page data to be
         reloaded by using <code>router.replace()</code> to itself.
       </p>
       <p>
-        If JavaScript is not enabled, it does pretty much the same as the{" "}
-        <Link href='/'>Vanilla</Link>-example and propagates error feedback
-        through page props.
+        Does <strong>not</strong> support usage without JS which is why it's a
+        lot cleaner
       </p>
 
       <h2>My guestbook</h2>
@@ -69,52 +76,51 @@ export default function Home(props: Props) {
       <h3>Add post</h3>
 
       <Formik
-        initialValues={initialValues}
-        initialErrors={formData?.formikError}
-        initialTouched={getInitialTouched(initialValues, formData?.formikError)}
-        validate={formikZodValidate(createPostSchema)}
+        initialValues={createPostDefaultValues}
+        validationSchema={createPostSchemaYup}
         onSubmit={async (values, actions) => {
-          setState("submitting");
-          const path = `${props.postEndpointPrefix}${router.asPath}.json`;
-          console.log({ values, path });
-          const res = await fetch(path, {
-            method: "post",
-            body: JSON.stringify(values),
-            headers: {
-              "content-type": "application/json",
-            },
-          });
-          if (!res.ok) {
-            setState("error");
-            return;
-          }
-          const json: {
-            pageProps: SuperJSONResult;
-          } = await res.json();
-          console.log("res json", json);
-          const result = deserialize(json.pageProps) as Props;
-          console.log("res result", result);
-          if (!result.formData?.success) {
-            console.error("Error", result.formData);
-            setState("error");
-            return;
-          }
+          try {
+            setFeedback(null);
+            const res = await fetch(props.postActionUrl, {
+              method: "post",
+              body: JSON.stringify(values),
+              headers: {
+                "content-type": "application/json",
+              },
+            });
+            if (!res.ok) {
+              throw new Error("Not ok error response");
+            }
+            const json: {
+              pageProps: SuperJSONResult;
+            } = await res.json();
+            const result = deserialize(json.pageProps) as Props;
 
-          await router.replace(router.asPath); // trigger refresh
-          setState("success");
-          actions.resetForm();
+            if (!result?.formData?.success) {
+              throw new Error(
+                "Not successful response, try reloading the page",
+              );
+            }
+
+            await reloadPage();
+
+            setFeedback({ state: "success" });
+            actions.resetForm();
+          } catch (err) {
+            setFeedback({
+              state: "error",
+              err,
+            });
+          }
         }}
       >
-        {() => (
-          <Form method='post' action={router.asPath}>
+        {({ isSubmitting }) => (
+          <Form method='post'>
+            <ProgressBar loading={isSubmitting} />
             <p className='field'>
               <label htmlFor='from'>Name</label>
               <br />
-              <Field
-                type='text'
-                name='from'
-                disabled={state === "submitting"}
-              />
+              <Field type='text' name='from' disabled={isSubmitting} />
               <br />
               <ErrorMessage
                 name='from'
@@ -129,7 +135,7 @@ export default function Home(props: Props) {
                 type='textarea'
                 name='message'
                 as='textarea'
-                disabled={state === "submitting"}
+                disabled={isSubmitting}
               />
               <br />
               <ErrorMessage
@@ -139,17 +145,21 @@ export default function Home(props: Props) {
               />
             </p>
             <p>
-              <button type='submit' disabled={state === "submitting"}>
+              <button type='submit' disabled={isSubmitting}>
                 Submit
               </button>
-            </p>
+              <br />
+              {feedback?.state === "success" && (
+                <div className='success'>Yay! Your entry was added</div>
+              )}
 
-            {state === "success" && (
-              <p className='success'>Yay! Your entry was added</p>
-            )}
-            {state === "error" && (
-              <p className='error'>Your message was not added.</p>
-            )}
+              {feedback?.state === "error" && (
+                <div className='error'>
+                  Something went wrong: {feedback.err.message}
+                </div>
+              )}
+              {isSubmitting && <div>Loading...</div>}
+            </p>
           </Form>
         )}
       </Formik>
@@ -159,15 +169,17 @@ export default function Home(props: Props) {
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const body = await getPostBody(ctx.req);
-  const formData = body ? await createPost(body as any) : null;
+  const formData = body ? await createPostYup(body as any) : null;
 
   const sha = process.env.VERCEL_GIT_COMMIT_SHA;
   const postEndpointPrefix = sha
     ? `/_next/data/${sha}`
     : "/_next/data/development";
+
+  const postActionUrl = `${postEndpointPrefix}${ctx.resolvedUrl}.json`;
   return {
     props: {
-      postEndpointPrefix,
+      postActionUrl,
       posts: await DB.getAllPosts(),
       formData,
     },
