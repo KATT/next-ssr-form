@@ -6,7 +6,7 @@ import {
   createPostSchemaYupType,
   createPostSchemaYup,
 } from "./createPostSchema";
-import { zodErrorToFormikError } from "./zodFormik";
+import { zodErrorToFormikError } from "../utils/zodFormik";
 import { ValidationError } from "yup";
 import { yupToFormErrors } from "formik";
 

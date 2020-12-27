@@ -31,14 +31,8 @@ h6 {
   background: white;
 }
 
-.callout {
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-}
 footer {
   margin-top: 20px;
-  border-top: 1px solid #ddd;
 }
 nav {
   margin-bottom: 10px;
@@ -96,4 +90,13 @@ code {
   padding: 2px;
   margin: -2px;
   display: inline-block;
+}
+
+hr {
+  height: 1px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
 }

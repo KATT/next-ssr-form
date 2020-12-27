@@ -4,7 +4,7 @@ import {
   createPostSchemaYup,
 } from "forms/createPostSchema";
 import { createPostZod, createPostYup } from "forms/createPostSchema.server";
-import { getInitialTouched } from "forms/zodFormik";
+import { getInitialTouched } from "utils/zodFormik";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
 import Link from "next/link";
