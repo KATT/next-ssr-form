@@ -3,27 +3,18 @@ import {
   createPostDefaultValues,
   createPostSchemaYup,
 } from "forms/createPostSchema";
-import { createPost, createPostYup } from "forms/createPostSchema.server";
-import { getInitialTouched } from "forms/zodFormik";
+import { createPostYup } from "forms/createPostSchema.server";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
-import Link from "next/link";
-import nProgress from "nprogress";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { deserialize } from "superjson";
 import { SuperJSONResult } from "superjson/dist/types";
 import { getPostBody } from "utils/getPostBody";
+import { ProgressBar } from "../components/ProgressBar";
 import { DB } from "../forms/db";
 
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
-function ProgressBar(props: { isSubmitting: boolean }) {
-  useEffect(() => {
-    props.isSubmitting ? nProgress.start() : nProgress.done();
-  }, [props.isSubmitting]);
-
-  return null;
-}
 function useIsMounted() {
   const ref = useRef(false);
   useEffect(() => {
@@ -68,7 +59,10 @@ export default function Home(props: Props) {
         <code>_next/data/[..]/[..].json</code>) then triggers a page data to be
         reloaded by using <code>router.replace()</code> to itself.
       </p>
-      <p>Does not support useage without JS which is why it's a lot cleaner</p>
+      <p>
+        Does <strong>not</strong> support usage without JS which is why it's a
+        lot cleaner
+      </p>
 
       <h2>My guestbook</h2>
       {props.posts.map((item) => (
@@ -123,7 +117,7 @@ export default function Home(props: Props) {
       >
         {({ isSubmitting }) => (
           <Form method='post'>
-            <ProgressBar isSubmitting={isSubmitting} />
+            <ProgressBar loading={isSubmitting} />
             <p className='field'>
               <label htmlFor='from'>Name</label>
               <br />

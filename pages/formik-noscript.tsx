@@ -3,7 +3,7 @@ import {
   createPostDefaultValues,
   createPostSchemaYup,
 } from "forms/createPostSchema";
-import { createPost, createPostYup } from "forms/createPostSchema.server";
+import { createPostZod, createPostYup } from "forms/createPostSchema.server";
 import { getInitialTouched } from "forms/zodFormik";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
@@ -44,7 +44,9 @@ export default function Home(props: Props) {
     : createPostDefaultValues;
   return (
     <>
-      <h1>Formik SSR</h1>
+      <h1>
+        Formik <code>noscript</code>
+      </h1>
       <p>
         Uses Formik to HTTP post to Next.js' special page endpoint (
         <code>_next/data/[..]/[..].json</code>) then triggers a page data to be

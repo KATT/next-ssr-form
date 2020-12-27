@@ -1,4 +1,4 @@
-import { createPost } from "forms/createPostSchema.server";
+import { createPostZod } from "forms/createPostSchema.server";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
 import { getPostBody } from "utils/getPostBody";
@@ -10,7 +10,7 @@ export default function Home(props: Props) {
   const { formData } = props;
   return (
     <>
-      <h1>Vanilla</h1>
+      <h1>Normal http post (zod for validation)</h1>
       <p>
         Uses a standard <code>&lt;form&gt;</code> with the <code>action</code>
         -attribute to post to the same page. Form data is handled in{" "}
@@ -85,7 +85,7 @@ export default function Home(props: Props) {
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const body = await getPostBody(ctx.req);
-  const formData = body ? await createPost(body as any) : null;
+  const formData = body ? await createPostZod(body as any) : null;
 
   if (formData?.success) {
     ctx.res.statusCode = 201;

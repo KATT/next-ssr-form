@@ -12,7 +12,8 @@ import { yupToFormErrors } from "formik";
 
 assertOnServer("createPostSchema.server.tsx");
 
-export async function createPost(input: createPostSchemaType) {
+// using zod as parser
+export async function createPostZod(input: createPostSchemaType) {
   assertOnServer("createPost");
 
   const parsed = createPostSchema.safeParse(input);
@@ -35,6 +36,7 @@ export async function createPost(input: createPostSchemaType) {
   };
 }
 
+// using yup as parser
 export async function createPostYup(input: createPostSchemaYupType) {
   assertOnServer("createPost");
 
@@ -57,7 +59,7 @@ export async function createPostYup(input: createPostSchemaYupType) {
         success: false as const,
         error: {
           message: err.message,
-          errors: yupToFormErrors(err),
+          errors: yupToFormErrors<createPostSchemaYupType>(err),
         },
       };
     }
