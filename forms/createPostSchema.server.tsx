@@ -1,7 +1,14 @@
 import { assertOnServer } from "utils/assertOnServer";
 import { DB } from "forms/db";
-import { createPostSchemaType, createPostSchema } from "./createPostSchema";
+import {
+  createPostSchemaType,
+  createPostSchema,
+  createPostSchemaYupType,
+  createPostSchemaYup,
+} from "./createPostSchema";
 import { zodErrorToFormikError } from "./zodFormik";
+import { ValidationError } from "yup";
+import { yupToFormErrors } from "formik";
 
 assertOnServer("createPostSchema.server.tsx");
 
@@ -26,4 +33,35 @@ export async function createPost(input: createPostSchemaType) {
     success: true as const,
     data: instance,
   };
+}
+
+export async function createPostYup(input: createPostSchemaYupType) {
+  assertOnServer("createPost");
+
+  try {
+    const parsed = await createPostSchemaYup.validate(input, {
+      stripUnknown: true,
+      abortEarly: false,
+    });
+    const instance = await DB.createPost(parsed);
+
+    return {
+      input,
+      success: true as const,
+      data: instance,
+    };
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      return {
+        input,
+        success: false as const,
+        error: {
+          message: err.message,
+          errors: yupToFormErrors(err),
+        },
+      };
+    }
+    // todo me later
+    throw err;
+  }
 }

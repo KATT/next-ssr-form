@@ -29,7 +29,7 @@ export default function Home(props: Props) {
       ))}
       <h3>Add post</h3>
 
-      <form action='' method='post'>
+      <form action='?post' method='post'>
         <p
           className={`field ${
             formData?.error?.fieldErrors["from"] ? "field--error" : ""
@@ -87,6 +87,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const body = await getPostBody(ctx.req);
   const formData = body ? await createPost(body as any) : null;
 
+  if (formData?.success) {
+    ctx.res.statusCode = 201;
+  }
   return {
     props: {
       posts: await DB.getAllPosts(),

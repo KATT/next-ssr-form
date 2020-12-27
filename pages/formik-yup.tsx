@@ -1,10 +1,10 @@
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import {
   createPostDefaultValues,
-  createPostSchema,
+  createPostSchemaYup,
 } from "forms/createPostSchema";
-import { createPost } from "forms/createPostSchema.server";
-import { formikZodValidate, getInitialTouched } from "forms/zodFormik";
+import { createPost, createPostYup } from "forms/createPostSchema.server";
+import { getInitialTouched } from "forms/zodFormik";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
 import Link from "next/link";
@@ -70,9 +70,9 @@ export default function Home(props: Props) {
 
       <Formik
         initialValues={initialValues}
-        initialErrors={formData?.formikError}
-        initialTouched={getInitialTouched(initialValues, formData?.formikError)}
-        validate={formikZodValidate(createPostSchema)}
+        initialErrors={formData?.error?.errors}
+        initialTouched={getInitialTouched(formData?.error?.errors)}
+        validationSchema={createPostSchemaYup}
         onSubmit={async (values, actions) => {
           setState("submitting");
           const path = `${props.postEndpointPrefix}${router.asPath}.json`;
@@ -159,12 +159,13 @@ export default function Home(props: Props) {
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const body = await getPostBody(ctx.req);
-  const formData = body ? await createPost(body as any) : null;
+  const formData = body ? await createPostYup(body as any) : null;
 
   const sha = process.env.VERCEL_GIT_COMMIT_SHA;
   const postEndpointPrefix = sha
     ? `/_next/data/${sha}`
     : "/_next/data/development";
+
   return {
     props: {
       postEndpointPrefix,
