@@ -31,9 +31,7 @@ function useReloadPage() {
   const isMounted = useIsMounted();
   return useCallback(async () => {
     if (isMounted()) {
-      await router.replace({
-        pathname: router.asPath,
-      });
+      await router.replace(router.asPath);
     }
   }, [router.asPath]);
 }
