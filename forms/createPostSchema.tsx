@@ -1,5 +1,6 @@
 import * as z from "zod";
 import * as yup from "yup";
+import { createForm } from "utils/formHelper";
 
 // zod
 export const createPostSchema = z.object({
@@ -15,9 +16,19 @@ export const createPostDefaultValues: createPostSchemaType = {
 };
 
 // yup
-export const createPostSchemaYup = yup.object().shape({
-  message: yup.string().min(10).required(),
-  from: yup.string().min(2).required(),
-});
+export const createPostSchemaYup = yup
+  .object({
+    message: yup.string().min(10).required(),
+    from: yup.string().min(2).required(),
+  })
+  .required();
 
 export type createPostSchemaYupType = yup.InferType<typeof createPostSchemaYup>;
+
+export const createPostForm = createForm({
+  schema: createPostSchema,
+  defaultValues: {
+    message: "",
+    from: "",
+  },
+});
