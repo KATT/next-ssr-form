@@ -4,8 +4,8 @@ import { ReactNode } from "react";
 
 const routes: [string, string][] = [
   ["/", "Vanilla"],
-  ["/formik-yup", "Formik with yup"],
-  ["/formik-zod", "Formik with zod"],
+  ["/formik", "Formik"],
+  ["/formik-ok-nojs", "Formik (works without js)"],
 ];
 
 export function Layout(props: { children: ReactNode }) {
