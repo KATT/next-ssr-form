@@ -39,7 +39,6 @@ function useReloadPage() {
 }
 export default function Home(props: Props) {
   const reloadPage = useReloadPage();
-  const { formData } = props;
   const [feedback, setFeedback] = useState<
     | null
     | {
