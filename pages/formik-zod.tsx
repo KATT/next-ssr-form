@@ -1,14 +1,7 @@
 import { ErrorMessage, Field, Form, Formik } from "formik";
-import {
-  createPostDefaultValues,
-  createPostSchemaYup,
-} from "forms/createPostSchema";
-import { createPostYup } from "forms/createPostSchema.server";
+import { createPostForm } from "forms/createPostSchema";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useState } from "react";
-import { deserialize } from "superjson";
-import { SuperJSONResult } from "superjson/dist/types";
-import { getPostBody } from "utils/getPostBody";
 import { ProgressBar } from "../components/ProgressBar";
 import { DB } from "../forms/db";
 import { useReloadPage } from "../utils/useReloadPage";
@@ -54,31 +47,16 @@ export default function Home(props: Props) {
       <h3>Add post</h3>
 
       <Formik
-        initialValues={createPostDefaultValues}
-        validationSchema={createPostSchemaYup}
+        initialValues={createPostForm.defaultValues}
+        validate={createPostForm.formikValidator}
         onSubmit={async (values, actions) => {
           try {
             setFeedback(null);
-            const res = await fetch(props.postActionUrl, {
-              method: "post",
-              body: JSON.stringify(values),
-              headers: {
-                "content-type": "application/json",
-              },
+            await createPostForm.clientRequest({
+              values,
+              endpoint: props.form.endpoint,
+              pagePropsKey: "form",
             });
-            if (!res.ok) {
-              throw new Error("Not ok error response");
-            }
-            const json: {
-              pageProps: SuperJSONResult;
-            } = await res.json();
-            const result = deserialize(json.pageProps) as Props;
-
-            if (!result?.formData?.success) {
-              throw new Error(
-                "Not successful response, try reloading the page",
-              );
-            }
 
             await reloadPage();
 
@@ -126,6 +104,7 @@ export default function Home(props: Props) {
               <button type='submit' disabled={isSubmitting}>
                 Submit
               </button>
+              <br />
               {feedback?.state === "success" && (
                 <span className='feedback success'>
                   Yay! Your entry was added
@@ -147,20 +126,16 @@ export default function Home(props: Props) {
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const body = await getPostBody(ctx.req);
-  const formData = body ? await createPostYup(body as any) : null;
-
-  const sha = process.env.VERCEL_GIT_COMMIT_SHA;
-  const postEndpointPrefix = sha
-    ? `/_next/data/${sha}`
-    : "/_next/data/development";
-
-  const postActionUrl = `${postEndpointPrefix}${ctx.resolvedUrl}.json`;
+  const form = await createPostForm.ssrHelper({
+    ctx,
+    async mutation(input) {
+      return DB.createPost(input);
+    },
+  });
   return {
     props: {
-      postActionUrl,
       posts: await DB.getAllPosts(),
-      formData,
+      form,
     },
   };
 };

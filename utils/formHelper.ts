@@ -1,6 +1,9 @@
+import { FormikErrors, setIn } from "formik";
+import { FunctionThenArg } from "global";
 import { GetServerSidePropsContext } from "next";
 import { deserialize } from "superjson";
 import { SuperJSONResult } from "superjson/dist/types";
+import { validate } from "uuid";
 import * as z from "zod";
 import { ZodRawShape } from "zod/lib/src/types/base";
 import { getPostBody } from "./getPostBody";
@@ -10,8 +13,8 @@ function throwServerOnlyError(message: string): never {
 }
 
 export function createForm<
-  TSchema extends z.ZodObject<TValues>,
-  TValues extends ZodRawShape
+  TSchema extends z.ZodObject<TSchemaShape>,
+  TSchemaShape extends ZodRawShape
 >({
   schema,
   defaultValues,
@@ -19,11 +22,11 @@ export function createForm<
   schema: TSchema;
   defaultValues: z.infer<TSchema>;
 }) {
-  type InputType = z.infer<TSchema>;
+  type TValues = z.infer<TSchema>;
 
   async function serverRequest<TExecutorOutput = unknown>(
-    input: InputType,
-    executor: (data: InputType) => Promise<TExecutorOutput>,
+    input: TValues,
+    executor: (data: TValues) => Promise<TExecutorOutput>,
   ) {
     if (!process.browser) {
       const parsed = schema.safeParse(input);
@@ -61,16 +64,23 @@ export function createForm<
     }
     throwServerOnlyError("serverRequest()");
   }
-  async function ssrHelper(ctx: GetServerSidePropsContext) {
+  async function ssrHelper<TExecutorOutput = unknown>({
+    ctx,
+    mutation,
+  }: {
+    ctx: GetServerSidePropsContext;
+    mutation: (data: TValues) => Promise<TExecutorOutput>;
+  }) {
     if (!process.browser) {
-      const postBody = await getPostBody(ctx.req);
+      const input = await getPostBody(ctx.req);
       // make sure to config `generateBuildId` in `next.config.js`
       const sha = process.env.VERCEL_GIT_COMMIT_SHA;
-      const endpoint = sha ? `/_next/data/${sha}` : "/_next/data/development";
+      const baseUrl = sha ? `/_next/data/${sha}` : "/_next/data/development";
+      const endpoint = `${baseUrl}${ctx.resolvedUrl}.json`;
 
       return {
         endpoint,
-        postBody,
+        output: input ? await serverRequest(input as any, mutation) : null,
       };
     }
     throwServerOnlyError("ssrHelper");
@@ -98,17 +108,34 @@ export function createForm<
       pageProps: SuperJSONResult;
     } = await res.json();
     const result: any = deserialize(json.pageProps);
-    const data: T = result[pagePropsKey];
+    const data: FunctionThenArg<typeof ssrHelper> = result[pagePropsKey];
 
-    if (!result?.formData?.success) {
+    if (!data.output?.success) {
+      console.error("Invalid output", {
+        result,
+        pagePropsKey,
+      });
       throw new Error("Not successful response, try reloading the page");
     }
+    return data;
   }
+
   return {
     schema,
     defaultValues,
     serverRequest,
     ssrHelper,
     clientRequest,
+    formikValidator(values: TValues) {
+      let errors: FormikErrors<TValues> = {};
+      const parsed = schema.safeParse(values);
+      if (!parsed.success) {
+        for (const err of parsed.error.errors) {
+          errors = setIn(errors, err.path.join("."), err.message);
+        }
+      }
+      // console.log("errors", errors);
+      return errors;
+    },
   };
 }
