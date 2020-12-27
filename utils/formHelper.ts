@@ -15,11 +15,9 @@ export function createForm<
 >({
   schema,
   defaultValues,
-  formId,
 }: {
   schema: TSchema;
   defaultValues: z.infer<TSchema>;
-  formId: string;
 }) {
   type InputType = z.infer<TSchema>;
 
@@ -107,7 +105,6 @@ export function createForm<
     }
   }
   return {
-    formId,
     schema,
     defaultValues,
     serverRequest,

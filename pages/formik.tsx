@@ -5,36 +5,16 @@ import {
 } from "forms/createPostSchema";
 import { createPostYup } from "forms/createPostSchema.server";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { useRouter } from "next/dist/client/router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { deserialize } from "superjson";
 import { SuperJSONResult } from "superjson/dist/types";
 import { getPostBody } from "utils/getPostBody";
 import { ProgressBar } from "../components/ProgressBar";
 import { DB } from "../forms/db";
+import { useReloadPage } from "../utils/useReloadPage";
 
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
-function useIsMounted() {
-  const ref = useRef(false);
-  useEffect(() => {
-    ref.current = true;
-    return () => {
-      ref.current = false;
-    };
-  }, []);
-
-  return () => ref.current;
-}
-function useReloadPage() {
-  const router = useRouter();
-  const isMounted = useIsMounted();
-  return useCallback(async () => {
-    if (isMounted()) {
-      await router.replace(router.asPath);
-    }
-  }, [router.asPath]);
-}
 export default function Home(props: Props) {
   const reloadPage = useReloadPage();
   const [feedback, setFeedback] = useState<
