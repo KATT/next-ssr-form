@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 const routes: [string, string][] = [
   ["/", "Formik"],
   ["/vanilla", "Vanilla form with HTTP post and no JS"],
+  ["/formik-scaffold", "Scaffolding"],
 ];
 
 export function Layout(props: { children: ReactNode }) {

@@ -1,4 +1,11 @@
-import { FormikErrors, setIn } from "formik";
+import {
+  Form,
+  Formik,
+  FormikErrors,
+  FormikProps,
+  FormikTouched,
+  setIn,
+} from "formik";
 import { IncomingMessage } from "http";
 import { GetServerSidePropsContext } from "next";
 import { deserialize } from "superjson";
@@ -8,6 +15,7 @@ import qs from "querystring";
 import * as z from "zod";
 import { ZodRawShape } from "zod/lib/src/types/base";
 import { getPostBody } from "./getPostBody";
+import { ReactNode, useState } from "react";
 
 function throwServerOnlyError(message: string): never {
   throw new Error(`You have access server-only functionality (${message})`);
@@ -211,86 +219,126 @@ export function createForm<
       newProps,
     };
   }
+  function getInitialValues<
+    TProps extends TPageProps<TMutationData>,
+    TMutationData
+  >(props: TProps): TValues {
+    const res = props[formId].response;
+    if (res?.error && res.input) {
+      return res.input;
+    }
+    return defaultValues;
+  }
 
+  function getInitialErrors<
+    TProps extends TPageProps<TMutationData>,
+    TMutationData
+  >(props: TProps) {
+    const fieldErrors = props[formId].response?.error?.fieldErrors;
+    if (!fieldErrors) {
+      return undefined;
+    }
+
+    const errors: Dict<string> = {};
+    for (const [key, value] of Object.entries(fieldErrors)) {
+      if (!value) {
+        continue;
+      }
+      errors[key] = value.join(", ");
+    }
+
+    return errors as FormikErrors<TValues>;
+  }
+  function getFeedbackFromProps<
+    TProps extends TPageProps<TMutationData>,
+    TMutationData
+  >(props: TProps) {
+    const response = props[formId].response;
+    if (!response) {
+      return null;
+    }
+
+    if (response.success) {
+      return {
+        state: "success" as const,
+      };
+    }
+
+    return {
+      state: "error" as const,
+      error: response.error as typeof response.error | Error,
+    };
+  }
+  function formikValidator(values: TValues) {
+    let errors: FormikErrors<TValues> = {};
+    const parsed = schema.safeParse(values);
+    if (!parsed.success) {
+      for (const err of parsed.error.errors) {
+        errors = setIn(errors, err.path.join("."), err.message);
+      }
+    }
+    // console.log("errors", errors);
+    return errors;
+  }
+
+  function getInitialTouched<
+    TProps extends TPageProps<TMutationData>,
+    TMutationData
+  >(props: TProps) {
+    const error = props[formId].response?.error;
+    if (!error) {
+      return undefined;
+    }
+
+    const touched: Record<string, boolean> = {};
+
+    for (const key in defaultValues) {
+      // not deep setting
+      touched[key] = true;
+    }
+
+    return touched as FormikTouched<TValues>;
+  }
+  function useFormikScaffold<
+    TProps extends TPageProps<TMutationData>,
+    TMutationData
+  >(props: TProps) {
+    const [feedback, setFeedback] = useState(getFeedbackFromProps(props));
+    const formikProps = {
+      initialValues: getInitialValues(props),
+      initialErrors: getInitialErrors(props),
+      initialTouched: getInitialTouched(props),
+      validate: formikValidator,
+    };
+    return {
+      Form(formProps: {
+        children: (formikProps: FormikProps<TValues>) => ReactNode;
+      }) {
+        return (
+          <Formik
+            {...formikProps}
+            onSubmit={async () => {}}
+            children={(p) => (
+              <Form method='post' action={props[formId].endpoints.action}>
+                {formProps.children(p)}
+              </Form>
+            )}
+          />
+        );
+      },
+      feedback,
+    };
+  }
   return {
     formId,
     schema,
     getPageProps,
     clientRequest,
-    getInitialValues<TProps extends TPageProps<TMutationData>, TMutationData>(
-      props: TProps,
-    ): TValues {
-      const res = props[formId].response;
-      if (res?.error && res.input) {
-        return res.input;
-      }
-      return defaultValues;
-    },
-    getInitialErrors<TProps extends TPageProps<TMutationData>, TMutationData>(
-      props: TProps,
-    ) {
-      const fieldErrors = props[formId].response?.error?.fieldErrors;
-      if (!fieldErrors) {
-        return undefined;
-      }
-
-      const errors: Dict<string> = {};
-      for (const [key, value] of Object.entries(fieldErrors)) {
-        if (!value) {
-          continue;
-        }
-        errors[key] = value.join(", ");
-      }
-
-      return errors as FormikErrors<TValues>;
-    },
-    getInitialTouched<TProps extends TPageProps<TMutationData>, TMutationData>(
-      props: TProps,
-    ) {
-      const error = props[formId].response?.error;
-      if (!error) {
-        return undefined;
-      }
-
-      const touched: Record<string, boolean> = {};
-
-      for (const key in defaultValues) {
-        // not deep setting
-        touched[key] = true;
-      }
-
-      return touched;
-    },
-    getFeedbackFromProps<
-      TProps extends TPageProps<TMutationData>,
-      TMutationData
-    >(props: TProps) {
-      const response = props[formId].response;
-      if (!response) {
-        return null;
-      }
-
-      if (response.success) {
-        return {
-          state: "success" as const,
-        };
-      }
-
-      return {
-        state: "error" as const,
-        error: response.error as typeof response.error | Error,
-      };
-    },
-    formikValidator(values: TValues) {
-      let errors: FormikErrors<TValues> = {};
-      const parsed = schema.safeParse(values);
-      if (!parsed.success) {
-        for (const err of parsed.error.errors) {
-          errors = setIn(errors, err.path.join("."), err.message);
-        }
-      }
-      // console.log("errors", errors);
-      return errors;
-    },
+    getInitialValues,
+    getInitialErrors,
+    getInitialTouched,
+    getFeedbackFromProps,
+    formikValidator,
+    useFormikScaffold,
   };
 }
