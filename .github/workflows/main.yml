@@ -53,7 +53,6 @@ jobs:
 
   build-typescript-example:
     name: Build example
-    needs: build
     defaults:
       run:
         working-directory: next-form/examples/typescript
@@ -90,8 +89,9 @@ jobs:
 
       - name: Install and link lib
         run: |
-          yarn install
           cd .. && yarn install && yarn link
+          yarn link next-form
+          yarn
         env:
           CI: true
 
