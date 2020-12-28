@@ -87,13 +87,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.node_version}}-yarn-v4-
 
-      - name: Install and link lib
+      - name: Install
         run: |
-          cd ../../
-          yarn install
-          yarn link
-          cd examples/typescript
-          yarn link next-form
           yarn
         env:
           CI: true
