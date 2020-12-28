@@ -148,7 +148,7 @@ export default function Home(props: Props) {
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const createPost = await createPostForm.getPageProps({
+  const createPostProps = await createPostForm.getPageProps({
     ctx,
     async mutation(input) {
       return DB.createPost(input);
@@ -157,7 +157,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   return {
     props: {
-      ...createPost,
+      ...createPostProps,
       posts: await DB.getAllPosts(),
     },
   };

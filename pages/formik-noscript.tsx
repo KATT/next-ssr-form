@@ -1,21 +1,11 @@
 import { ErrorMessage, Field, Form, Formik } from "formik";
-import {
-  createPostDefaultValues,
-  createPostSchemaYup,
-} from "forms/createPostSchema";
-import { createPostZod, createPostYup } from "forms/createPostSchema.server";
-import { getInitialTouched } from "utils/zodFormik";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
 import Link from "next/link";
-import nProgress from "nprogress";
-import { useEffect, useState } from "react";
-import { deserialize } from "superjson";
-import { SuperJSONResult } from "superjson/dist/types";
-import { getPostBody } from "utils/getPostBody";
-import { DB } from "../forms/db";
+import { useState } from "react";
 import { createForm } from "utils/createForm";
 import * as z from "zod";
+import { DB } from "../forms/db";
 
 export const createPostForm = createForm({
   schema: z.object({
@@ -26,37 +16,19 @@ export const createPostForm = createForm({
     message: "",
     from: "",
   },
-  formId: "form",
+  formId: "createPost",
 });
 
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 export default function Home(props: Props) {
+  const [posts, setPosts] = useState(props.posts);
   const router = useRouter();
-  const { formData } = props;
-  const [state, setState] = useState<
-    "initial" | "submitting" | "error" | "success"
-  >(() => {
-    if (formData?.success) {
-      return "success";
-    }
-    if (formData?.error) {
-      return "error";
-    }
-    return "initial";
-  });
-  useEffect(() => {
-    if (state === "submitting") {
-      nProgress.start();
-    }
-    return () => {
-      nProgress.done();
-    };
-  }, [state === "submitting"]);
 
-  const initialValues = formData?.error
-    ? formData.input
-    : createPostForm.defaultValues;
+  const [feedback, setFeedback] = useState(
+    createPostForm.getFeedbackFromProps(props),
+  );
+
   return (
     <>
       <h1>
@@ -74,7 +46,7 @@ export default function Home(props: Props) {
       </p>
 
       <h2>My guestbook</h2>
-      {props.posts.map((item) => (
+      {posts.map((item) => (
         <article key={item.id}>
           <strong>
             From {item.from} at {item.createdAt.toLocaleDateString("sv-SE")}{" "}
@@ -86,52 +58,48 @@ export default function Home(props: Props) {
       <h3>Add post</h3>
 
       <Formik
-        initialValues={initialValues}
-        initialErrors={formData?.error?.errors}
-        initialTouched={getInitialTouched(formData?.error?.errors)}
-        validationSchema={createPostSchemaYup}
+        initialValues={createPostForm.getInitialValues(props)}
+        initialErrors={createPostForm.getInitialErrors(props)}
+        initialTouched={createPostForm.getInitialTouched(props)}
+        validate={createPostForm.formikValidator}
         onSubmit={async (values, actions) => {
-          setState("submitting");
-          const path = `${props.postEndpointPrefix}${router.asPath}.json`;
-          console.log({ values, path });
-          const res = await fetch(path, {
-            method: "post",
-            body: JSON.stringify(values),
-            headers: {
-              "content-type": "application/json",
-            },
-          });
-          if (!res.ok) {
-            setState("error");
-            return;
-          }
-          const json: {
-            pageProps: SuperJSONResult;
-          } = await res.json();
-          console.log("res json", json);
-          const result = deserialize(json.pageProps) as Props;
-          console.log("res result", result);
-          if (!result.formData?.success) {
-            console.error("Error", result.formData);
-            setState("error");
-            return;
-          }
+          try {
+            setFeedback(null);
+            const { newProps } = await createPostForm.clientRequest({
+              values,
+              props,
+            });
 
-          await router.replace(router.asPath); // trigger refresh
-          setState("success");
-          actions.resetForm();
+            const feedback = createPostForm.getFeedbackFromProps(newProps);
+            if (!feedback) {
+              throw new Error("Didn't receive feedback from props");
+            }
+            if (newProps.createPost.output?.success) {
+              console.log(
+                "added post with id",
+                newProps.createPost.output.data.id,
+              );
+            }
+            setFeedback(feedback);
+            if (feedback.state === "success") {
+              setPosts(newProps.posts); // refresh posts
+            }
+
+            actions.resetForm();
+          } catch (error) {
+            setFeedback({
+              state: "error",
+              error,
+            });
+          }
         }}
       >
-        {() => (
+        {({ isSubmitting }) => (
           <Form method='post' action={router.asPath}>
             <p className='field'>
               <label htmlFor='from'>Name</label>
               <br />
-              <Field
-                type='text'
-                name='from'
-                disabled={state === "submitting"}
-              />
+              <Field type='text' name='from' disabled={isSubmitting} />
               <br />
               <ErrorMessage
                 name='from'
@@ -146,7 +114,7 @@ export default function Home(props: Props) {
                 type='textarea'
                 name='message'
                 as='textarea'
-                disabled={state === "submitting"}
+                disabled={isSubmitting}
               />
               <br />
               <ErrorMessage
@@ -156,17 +124,24 @@ export default function Home(props: Props) {
               />
             </p>
             <p>
-              <button type='submit' disabled={state === "submitting"}>
+              <button type='submit' disabled={isSubmitting}>
                 Submit
               </button>
             </p>
 
-            {state === "success" && (
-              <p className='success'>Yay! Your entry was added</p>
+            <br />
+            {feedback?.state === "success" && (
+              <span className='feedback success'>
+                Yay! Your entry was added
+              </span>
             )}
-            {state === "error" && (
-              <p className='error'>Your message was not added.</p>
+
+            {feedback?.state === "error" && (
+              <span className='feedback error'>
+                Something went wrong: {feedback.error.message}
+              </span>
             )}
+            {isSubmitting && <span className='feedback'>Loading...</span>}
           </Form>
         )}
       </Formik>
@@ -175,15 +150,16 @@ export default function Home(props: Props) {
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const form = await createPostForm.getPageProps({
+  const createPostProps = await createPostForm.getPageProps({
     ctx,
     async mutation(input) {
       return DB.createPost(input);
     },
   });
+
   return {
     props: {
-      form,
+      ...createPostProps,
       posts: await DB.getAllPosts(),
     },
   };

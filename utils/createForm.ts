@@ -13,38 +13,41 @@ function throwServerOnlyError(message: string): never {
   throw new Error(`You have access server-only functionality (${message})`);
 }
 
-type PostResponseOutput<TMutationData> =
+export type PostResponseOutputError =
+  | {
+      type: "ValidationError";
+      message: string;
+      stack?: string | undefined;
+      errors: {
+        formErrors: string[];
+        fieldErrors: {
+          [k: string]: string[];
+        };
+      };
+    }
+  | {
+      type: "MutationError";
+      message: string;
+      stack?: string | undefined;
+      errors?: null;
+    };
+type PostResponseOutput<TMutationData, TValues> =
   | {
       success: true;
-      input: unknown;
+      input: TValues;
       data: TMutationData;
+      error?: null;
     }
   | {
       success: false;
-      input: unknown;
-      data: null;
-      error:
-        | {
-            type: "ValidationError";
-            message: string;
-            stack?: string | undefined;
-            errors: {
-              formErrors: string[];
-              fieldErrors: {
-                [k: string]: string[];
-              };
-            };
-          }
-        | {
-            type: "MutationError";
-            message: string;
-            stack?: string | undefined;
-          };
+      input: TValues;
+      data?: null;
+      error: PostResponseOutputError;
     };
 
-type PagePropsValue<TMutationData> = {
+type PagePropsValue<TMutationData, TValues> = {
   endpoint: string;
-  output: PostResponseOutput<TMutationData> | null;
+  output: PostResponseOutput<TMutationData, TValues> | null;
 };
 
 type PostEnvelope = {
@@ -71,21 +74,30 @@ export function createForm<
   type TValues = z.infer<TSchema>;
   type TPageProps<TMutationData> = Record<
     TFormId,
-    PagePropsValue<TMutationData>
+    PagePropsValue<TMutationData, TValues>
   >;
+  type TPostResponseOutput<TMutationData> = PostResponseOutput<
+    TMutationData,
+    TValues
+  >;
+
+  type TPagePropsValue<TMutationData> = {
+    endpoint: string;
+    output: PostResponseOutput<TMutationData, TValues> | null;
+  };
 
   async function performMutationIfNeeded<TMutationData>(
     body: unknown,
     mutation: (data: TValues) => Promise<TMutationData>,
-  ): Promise<PostResponseOutput<TMutationData> | null> {
+  ): Promise<TPostResponseOutput<TMutationData> | null> {
     if (!process.browser) {
-      let input: null | unknown = null;
+      let input: null | TValues = null;
       if (
         body &&
         typeof body === "object" &&
         (body as PostEnvelope).formId === formId
       ) {
-        input = (body as PostEnvelope).values;
+        input = (body as PostEnvelope).values as TValues;
       }
       if (!input) {
         return null;
@@ -95,9 +107,8 @@ export function createForm<
       if (!parsed.success) {
         const err = parsed.error;
         return {
-          input,
           success: false,
-          data: null,
+          input,
           error: {
             type: "ValidationError",
             message: err.message,
@@ -118,7 +129,6 @@ export function createForm<
         return {
           input,
           success: false as const,
-          data: null,
           error: {
             type: "MutationError",
             message: err.message,
@@ -144,12 +154,12 @@ export function createForm<
       const sha = process.env.VERCEL_GIT_COMMIT_SHA;
       const baseUrl = sha ? `/_next/data/${sha}` : "/_next/data/development";
       const endpoint = `${baseUrl}${ctx.resolvedUrl}.json`;
-      const val: PagePropsValue<TMutationData> = {
-        endpoint,
-        output: await performMutationIfNeeded<TMutationData>(body, mutation),
-      };
+
       return {
-        [formId]: val,
+        [formId]: {
+          endpoint,
+          output: await performMutationIfNeeded<TMutationData>(body, mutation),
+        },
       } as TPageProps<TMutationData>;
     }
     throwServerOnlyError("getPageProps");
@@ -184,7 +194,6 @@ export function createForm<
       throw new Error("Not successful response, try reloading the page");
     }
     return {
-      data: output.data,
       newProps,
     };
   }
@@ -193,9 +202,69 @@ export function createForm<
     formId,
     schema,
     defaultValues,
-    serverRequest: performMutationIfNeeded,
     getPageProps,
     clientRequest,
+    getInitialValues<TProps extends TPageProps<TMutationData>, TMutationData>(
+      props: TProps,
+    ): TValues {
+      const res = props[formId].output;
+      if (res?.error && res.input) {
+        return res.input;
+      }
+      return defaultValues;
+    },
+    getInitialErrors<TProps extends TPageProps<TMutationData>, TMutationData>(
+      props: TProps,
+    ) {
+      const fieldErrors = props[formId].output?.error?.errors?.fieldErrors;
+      if (!fieldErrors) {
+        return undefined;
+      }
+
+      const errors: Record<string, string | undefined> = {};
+      for (const [key, value] of Object.entries(fieldErrors)) {
+        errors[key] = value.join(", ");
+      }
+
+      return errors as FormikErrors<TValues>;
+    },
+    getInitialTouched<TProps extends TPageProps<TMutationData>, TMutationData>(
+      props: TProps,
+    ) {
+      const error = props[formId].output?.error;
+      if (!error) {
+        return undefined;
+      }
+
+      const touched: Record<string, boolean> = {};
+
+      for (const key in defaultValues) {
+        // not deep setting
+        touched[key] = true;
+      }
+
+      return touched;
+    },
+    getFeedbackFromProps<
+      TProps extends TPageProps<TMutationData>,
+      TMutationData
+    >(props: TProps) {
+      const response = props[formId].output;
+      if (!response) {
+        return null;
+      }
+
+      if (response.success) {
+        return {
+          state: "success" as const,
+        };
+      }
+
+      return {
+        state: "error" as const,
+        error: response.error as typeof response.error | Error,
+      };
+    },
     formikValidator(values: TValues) {
       let errors: FormikErrors<TValues> = {};
       const parsed = schema.safeParse(values);
