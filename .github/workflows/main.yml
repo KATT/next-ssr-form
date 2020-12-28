@@ -90,7 +90,7 @@ jobs:
       - name: Install/build lib
         run: |
           cd ../../
-          yarn  --frozen-lockfile --silent
+          yarn --frozen-lockfile --silent
 
       - name: Install
         run: |
