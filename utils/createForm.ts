@@ -1,11 +1,8 @@
 import { FormikErrors, setIn } from "formik";
-import { FunctionThenArg } from "global";
 import { GetServerSidePropsContext } from "next";
 import { deserialize } from "superjson";
 import { SuperJSONResult } from "superjson/dist/types";
-import { validate } from "uuid";
 import * as z from "zod";
-import { ZodError } from "zod";
 import { ZodRawShape } from "zod/lib/src/types/base";
 import { getPostBody } from "./getPostBody";
 
@@ -180,19 +177,12 @@ export function createForm<
         "content-type": "application/json",
       },
     });
-    if (!res.ok) {
-      throw new Error("Not ok error response");
-    }
     const json: {
       pageProps: SuperJSONResult;
     } = await res.json();
 
     const newProps: TProps = deserialize(json.pageProps);
-    const output = newProps[formId]?.output;
 
-    if (!output || !output.success) {
-      throw new Error("Not successful response, try reloading the page");
-    }
     return {
       newProps,
     };

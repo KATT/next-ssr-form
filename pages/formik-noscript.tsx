@@ -9,7 +9,7 @@ import { DB } from "../forms/db";
 
 export const createPostForm = createForm({
   schema: z.object({
-    message: z.string().min(10),
+    message: z.string().min(2),
     from: z.string().min(2),
   }),
   defaultValues: {
@@ -137,9 +137,22 @@ export default function Home(props: Props) {
             )}
 
             {feedback?.state === "error" && (
-              <span className='feedback error'>
-                Something went wrong: {feedback.error.message}
-              </span>
+              <>
+                <span className='feedback error'>
+                  Something went wrong: {feedback.error.message}. Full Error:{" "}
+                  <pre>
+                    {JSON.stringify(
+                      {
+                        ...feedback.error,
+                        message: feedback.error.message,
+                        stack: feedback.error.stack,
+                      },
+                      null,
+                      4,
+                    )}
+                  </pre>
+                </span>
+              </>
             )}
             {isSubmitting && <span className='feedback'>Loading...</span>}
           </Form>
@@ -153,6 +166,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const createPostProps = await createPostForm.getPageProps({
     ctx,
     async mutation(input) {
+      if (Math.random() < 0.3) {
+        throw new Error("Emulating the mutation failing");
+      }
       return DB.createPost(input);
     },
   });
