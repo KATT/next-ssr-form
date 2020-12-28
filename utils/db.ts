@@ -1,5 +1,4 @@
 import { assertOnServer } from "utils/assertOnServer";
-import * as zod from "zod";
 import { v4 } from "uuid";
 assertOnServer("db.ts");
 
