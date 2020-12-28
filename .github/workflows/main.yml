@@ -89,9 +89,10 @@ jobs:
 
       - name: Install
         run: |
-          yarn
+          yarn  --frozen-lockfile --silent --ignore-scripts
         env:
           CI: true
+          VERCEL_GIT_COMMIT_SHA: build
 
       - name: Build
         run: yarn build
