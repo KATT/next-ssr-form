@@ -1,13 +1,13 @@
-import { assertOnServer } from "utils/assertOnServer";
-import { v4 } from "uuid";
-assertOnServer("db.ts");
+import { v4 } from 'uuid';
+import { assertOnServer } from '../../dist';
+assertOnServer('db.ts');
 
 const db = {
   posts: [
     {
-      id: "00000000-0000-0000-0000-000000000001",
-      message: "hello",
-      from: "alexdotjs",
+      id: '00000000-0000-0000-0000-000000000001',
+      message: 'hello',
+      from: 'alexdotjs',
       createdAt: new Date(2020, 12, 26).toJSON(),
     },
   ],
@@ -15,33 +15,33 @@ const db = {
 
 const SLACK_WEBHOOK = process.env.SLACK_WEBHOOK;
 
-type PostInput = Omit<typeof db["posts"][number], "id" | "createdAt">;
+type PostInput = Omit<typeof db['posts'][number], 'id' | 'createdAt'>;
 async function postToSlack(post: PostInput) {
   if (!SLACK_WEBHOOK) {
-    console.log("No webhook setup - not posting to slack");
+    console.log('No webhook setup - not posting to slack');
     return;
   }
   try {
     fetch(SLACK_WEBHOOK, {
-      method: "post",
+      method: 'post',
       body: JSON.stringify({
         blocks: [
           {
-            type: "section",
+            type: 'section',
             text: {
-              type: "mrkdwn",
+              type: 'mrkdwn',
               text: `*From _${post.from}_*:\n${post.message}`,
             },
           },
         ],
       }),
       headers: {
-        "Content-type": "application/json",
+        'Content-type': 'application/json',
       },
     });
-    console.log("Posted to slack");
+    console.log('Posted to slack');
   } catch (err) {
-    console.error("Post to slack failed", err);
+    console.error('Post to slack failed', err);
   }
 }
 export module DB {
