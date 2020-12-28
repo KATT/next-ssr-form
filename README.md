@@ -10,7 +10,7 @@ You should probably not do this.
 - Works without JS enabled!
 - E2E type safety! TypeScript types inferred between client <-> server with all the nice autocomplete jazz
 - [zod](https://github.com/colinhacks/zod) for data validation
-- [babel-plugin-superjson-next](babel-plugin-superjson-next) to be able to avoid parsing date fields
+
 ## Wanna play around with it?
 
 ```bash

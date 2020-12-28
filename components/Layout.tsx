@@ -38,7 +38,7 @@ export function Layout(props: { children: ReactNode }) {
             Validates and adds to the db on the server with <code>/api</code>
             -endpoints.
           </li>
-          <li>Reuses same yup/zod schemas in server &amp; client</li>
+          <li>Reuses same zod schemas in server &amp; client</li>
           <li>TypeScript types are inferred to client.</li>
           <li>
             Data is reset whenever app is restarted or when Vercel's lambda gets
