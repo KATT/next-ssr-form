@@ -14,8 +14,23 @@ import { deserialize } from "superjson";
 import { SuperJSONResult } from "superjson/dist/types";
 import { getPostBody } from "utils/getPostBody";
 import { DB } from "../forms/db";
+import { createForm } from "utils/createForm";
+import * as z from "zod";
+
+export const createPostForm = createForm({
+  schema: z.object({
+    message: z.string().min(10),
+    from: z.string().min(2),
+  }),
+  defaultValues: {
+    message: "",
+    from: "",
+  },
+  formId: "form",
+});
 
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
+
 export default function Home(props: Props) {
   const router = useRouter();
   const { formData } = props;
@@ -41,7 +56,7 @@ export default function Home(props: Props) {
 
   const initialValues = formData?.error
     ? formData.input
-    : createPostDefaultValues;
+    : createPostForm.defaultValues;
   return (
     <>
       <h1>
@@ -160,19 +175,16 @@ export default function Home(props: Props) {
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const body = await getPostBody(ctx.req);
-  const formData = body ? await createPostYup(body as any) : null;
-
-  const sha = process.env.VERCEL_GIT_COMMIT_SHA;
-  const postEndpointPrefix = sha
-    ? `/_next/data/${sha}`
-    : "/_next/data/development";
-
+  const form = await createPostForm.getPageProps({
+    ctx,
+    async mutation(input) {
+      return DB.createPost(input);
+    },
+  });
   return {
     props: {
-      postEndpointPrefix,
+      form,
       posts: await DB.getAllPosts(),
-      formData,
     },
   };
 };

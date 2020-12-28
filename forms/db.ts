@@ -22,6 +22,8 @@ export module DB {
   export async function createPost(
     input: Omit<typeof db["posts"][number], "id" | "createdAt">,
   ) {
-    db.posts.push({ ...input, id: v4(), createdAt: new Date() });
+    const post = { ...input, id: v4(), createdAt: new Date() };
+    db.posts.push(post);
+    return post;
   }
 }

@@ -25,10 +25,15 @@ h6 {
 /* globals */
 .wrapper {
   margin: 0 auto;
-  max-width: 768px;
+  max-width: 728px;
   padding: 20px;
   margin: 20px auto;
   background: white;
+}
+@media screen and (max-width: 768px) {
+  .wrapper {
+    margin: 0 auto;
+  }
 }
 
 footer {

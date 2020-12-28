@@ -1,10 +1,23 @@
 import { ErrorMessage, Field, Form, Formik } from "formik";
-import { createPostForm } from "forms/createPostSchema";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import { ProgressBar } from "../components/ProgressBar";
 import { DB } from "../forms/db";
 import { useReloadPage } from "../utils/useReloadPage";
+import * as z from "zod";
+import { createForm } from "utils/createForm";
+
+export const createPostForm = createForm({
+  schema: z.object({
+    message: z.string().min(2),
+    from: z.string().min(2),
+  }),
+  defaultValues: {
+    message: "",
+    from: "",
+  },
+  formId: "createPost",
+});
 
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
@@ -52,11 +65,11 @@ export default function Home(props: Props) {
         onSubmit={async (values, actions) => {
           try {
             setFeedback(null);
-            await createPostForm.clientRequest({
+            const res = await createPostForm.clientRequest({
               values,
-              endpoint: props.form.endpoint,
-              pagePropsKey: "form",
+              formProps: props.createPost,
             });
+            console.log("added post with id", res!.data!.id);
 
             await reloadPage();
 
@@ -126,16 +139,17 @@ export default function Home(props: Props) {
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const form = await createPostForm.ssrHelper({
+  const createPost = await createPostForm.getPageProps({
     ctx,
     async mutation(input) {
       return DB.createPost(input);
     },
   });
+
   return {
     props: {
+      createPost,
       posts: await DB.getAllPosts(),
-      form,
     },
   };
 };
