@@ -90,7 +90,7 @@ export default function Home(props: Props) {
         }}
       >
         {({ isSubmitting }) => (
-          <Form method='post' action={router.asPath}>
+          <Form method='post' action={props.createPost.endpoints.action}>
             <p className='field'>
               <label htmlFor='from'>Name</label>
               <br />

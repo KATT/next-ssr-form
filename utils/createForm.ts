@@ -1,7 +1,10 @@
 import { FormikErrors, setIn } from "formik";
+import { IncomingMessage } from "http";
 import { GetServerSidePropsContext } from "next";
 import { deserialize } from "superjson";
 import { SuperJSONResult } from "superjson/dist/types";
+import url from "url";
+import qs from "querystring";
 import * as z from "zod";
 import { ZodRawShape } from "zod/lib/src/types/base";
 import { getPostBody } from "./getPostBody";
@@ -40,13 +43,18 @@ type PostResponse<TMutationData, TValues> =
     };
 
 type PagePropsValue<TMutationData, TValues> = {
-  endpoint: string;
+  endpoints: {
+    /**
+     * endpoint for using in `fetch()`
+     */
+    fetch: string;
+    /**
+     * endpoint for using in `<form action={x}`
+     */
+    action: string;
+  };
+  action: string;
   response: PostResponse<TMutationData, TValues> | null;
-};
-
-type PostEnvelope = {
-  formId: string;
-  values: unknown;
 };
 
 export function createForm<
@@ -72,19 +80,11 @@ export function createForm<
   >;
   type TPostResponse<TMutationData> = PostResponse<TMutationData, TValues>;
 
-  async function performMutationIfNeeded<TMutationData>(
-    body: unknown,
+  async function performMutation<TMutationData>(
+    input: TValues,
     mutation: (data: TValues) => Promise<TMutationData>,
   ): Promise<TPostResponse<TMutationData> | null> {
     if (!process.browser) {
-      let input: null | TValues = null;
-      if (
-        body &&
-        typeof body === "object" &&
-        (body as PostEnvelope).formId === formId
-      ) {
-        input = (body as PostEnvelope).values as TValues;
-      }
       if (!input) {
         return null;
       }
@@ -128,6 +128,38 @@ export function createForm<
     throwServerOnlyError("serverRequest()");
   }
 
+  async function getPostBodyForForm(req: IncomingMessage) {
+    if (req.url?.endsWith(`?formId=${encodeURIComponent(formId)}`)) {
+      return getPostBody(req);
+    }
+    return null;
+  }
+  function getEndpoints(resolvedUrl: string) {
+    if (!process.browser) {
+      const currentUrl = url.parse(resolvedUrl);
+      const currentQuery = qs.parse(currentUrl.query ?? "");
+      const newQuery = qs.stringify({ ...currentQuery, formId });
+      console.log("resolved", resolvedUrl);
+
+      // make sure to config `generateBuildId` in `next.config.js`
+      const sha = process.env.VERCEL_GIT_COMMIT_SHA;
+      const endpointPrefix = sha
+        ? `/_next/data/${sha}`
+        : "/_next/data/development";
+
+      const fetchPathname =
+        currentUrl.pathname === "/" ? "/index" : currentUrl.pathname;
+
+      const fetchEndpoint = `${endpointPrefix}${fetchPathname}.json?${newQuery}`;
+      const action = `${currentUrl.pathname}?${newQuery}`;
+      return {
+        fetch: fetchEndpoint,
+        action,
+      };
+    }
+
+    throwServerOnlyError("getEndpoints()");
+  }
   async function getPageProps<TMutationData>({
     ctx,
     mutation,
@@ -136,19 +168,24 @@ export function createForm<
     mutation: (data: TValues) => Promise<TMutationData>;
   }) {
     if (!process.browser) {
-      const body = await getPostBody(ctx.req);
+      const body = await getPostBodyForForm(ctx.req);
+
+      const endpoints = getEndpoints(ctx.resolvedUrl);
+      console.log("endpoints", endpoints);
+
       // make sure to config `generateBuildId` in `next.config.js`
       const sha = process.env.VERCEL_GIT_COMMIT_SHA;
       const baseUrl = sha ? `/_next/data/${sha}` : "/_next/data/development";
       const endpoint = `${baseUrl}${ctx.resolvedUrl}.json`;
 
+      const response = await performMutation<TMutationData>(
+        body as any,
+        mutation,
+      );
       return {
         [formId]: {
-          endpoint,
-          response: await performMutationIfNeeded<TMutationData>(
-            body,
-            mutation,
-          ),
+          endpoints,
+          response,
         },
       } as TPageProps<TMutationData>;
     }
@@ -159,13 +196,9 @@ export function createForm<
     TProps extends TPageProps<TMutationData>,
     TMutationData
   >({ values, props }: { props: TProps; values: TValues }) {
-    const envelope: PostEnvelope = {
-      formId,
-      values,
-    };
-    const res = await fetch(props[formId].endpoint, {
+    const res = await fetch(props[formId].endpoints.fetch, {
       method: "post",
-      body: JSON.stringify(envelope),
+      body: JSON.stringify(values),
       headers: {
         "content-type": "application/json",
       },
@@ -184,7 +217,6 @@ export function createForm<
   return {
     formId,
     schema,
-    defaultValues,
     getPageProps,
     clientRequest,
     getInitialValues<TProps extends TPageProps<TMutationData>, TMutationData>(

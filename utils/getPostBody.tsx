@@ -20,7 +20,8 @@ export async function getPostBody(req: IncomingMessage) {
 
     return new Promise<qs.ParsedUrlQuery | null>((resolve) => {
       if (req.method !== "POST") {
-        return resolve(null);
+        resolve(null);
+        return;
       }
       let body: string = "";
 
