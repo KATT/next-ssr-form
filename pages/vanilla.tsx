@@ -6,8 +6,8 @@ import * as z from "zod";
 
 export const createPostForm = createForm({
   schema: z.object({
-    message: z.string().min(2),
-    from: z.string().min(4),
+    from: z.string().min(2),
+    message: z.string().min(4),
   }),
   defaultValues: {
     message: "",
