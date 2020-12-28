@@ -11,6 +11,7 @@
     "node": ">=10"
   },
   "scripts": {
+    "dev": "yarn start",
     "start": "tsdx watch",
     "build": "tsdx build",
     "test": "tsdx test --passWithNoTests",
@@ -54,6 +55,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "husky": "^4.3.6",
+    "lerna": "^3.22.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "size-limit": "^4.9.1",
