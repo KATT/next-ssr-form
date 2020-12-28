@@ -89,7 +89,10 @@ jobs:
 
       - name: Install and link lib
         run: |
-          cd .. && yarn install && yarn link
+          cd .. 
+          yarn install
+          yarn link
+          cd next-form
           yarn link next-form
           yarn
         env:
