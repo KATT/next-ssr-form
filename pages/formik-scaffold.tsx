@@ -21,10 +21,7 @@ type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 export default function Home(props: Props) {
   const [posts, setPosts] = useState(props.posts);
-  const [feedback, setFeedback] = useState(
-    createPostForm.getFeedbackFromProps(props),
-  );
-  const { Form } = createPostForm.useFormikScaffold(props);
+  const { Form, feedback } = createPostForm.useFormikScaffold(props);
 
   return (
     <>
@@ -47,7 +44,11 @@ export default function Home(props: Props) {
       ))}
       <h3>Add post</h3>
 
-      <Form>
+      <Form
+        onSuccess={({ newProps }) => {
+          setPosts(newProps.posts);
+        }}
+      >
         {({ isSubmitting }) => (
           <>
             <p className='field'>

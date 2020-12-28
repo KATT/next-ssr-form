@@ -1,3 +1,8 @@
+/**
+ * ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
+ * This is unmaintainable spaghetti right now
+ * ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
+ */
 import {
   Form,
   Formik,
@@ -145,7 +150,6 @@ export function createForm<
       const currentUrl = url.parse(resolvedUrl);
       const currentQuery = qs.parse(currentUrl.query ?? "");
       const newQuery = qs.stringify({ ...currentQuery, formId });
-      console.log("resolved", resolvedUrl);
 
       // make sure to config `generateBuildId` in `next.config.js`
       const sha = process.env.VERCEL_GIT_COMMIT_SHA;
@@ -177,7 +181,6 @@ export function createForm<
       const body = await getPostBodyForForm(ctx.req);
 
       const endpoints = getEndpoints(ctx.resolvedUrl);
-      console.log("endpoints", endpoints);
 
       // make sure to config `generateBuildId` in `next.config.js`
       const sha = process.env.VERCEL_GIT_COMMIT_SHA;
@@ -304,20 +307,41 @@ export function createForm<
     TMutationData
   >(props: TProps) {
     const [feedback, setFeedback] = useState(getFeedbackFromProps(props));
-    const formikProps = {
-      initialValues: getInitialValues(props),
-      initialErrors: getInitialErrors(props),
-      initialTouched: getInitialTouched(props),
-      validate: formikValidator,
-    };
     return {
       Form(formProps: {
         children: (formikProps: FormikProps<TValues>) => ReactNode;
+        onSuccess?: ({ newProps }: { newProps: TProps }) => void;
       }) {
         return (
           <Formik
-            {...formikProps}
-            onSubmit={async () => {}}
+            initialValues={getInitialValues(props)}
+            initialErrors={getInitialErrors(props)}
+            initialTouched={getInitialTouched(props)}
+            validate={formikValidator}
+            onSubmit={async (values, actions) => {
+              try {
+                setFeedback(null);
+                const { newProps } = await clientRequest({
+                  values,
+                  props,
+                });
+
+                const feedback = getFeedbackFromProps(newProps);
+                if (!feedback) {
+                  throw new Error("Didn't receive feedback from props");
+                }
+                if (feedback.state === "success") {
+                  actions.resetForm();
+                  formProps.onSuccess && formProps.onSuccess({ newProps });
+                }
+                setFeedback(feedback);
+              } catch (error) {
+                setFeedback({
+                  state: "error",
+                  error,
+                });
+              }
+            }}
             children={(p) => (
               <Form method='post' action={props[formId].endpoints.action}>
                 {formProps.children(p)}
