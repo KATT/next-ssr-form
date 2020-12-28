@@ -22,8 +22,6 @@ type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 export default function Home(props: Props) {
   const [posts, setPosts] = useState(props.posts);
-  const router = useRouter();
-
   const [feedback, setFeedback] = useState(
     createPostForm.getFeedbackFromProps(props),
   );
