@@ -8,7 +8,7 @@ const db = {
       id: "00000000-0000-0000-0000-000000000001",
       message: "hello",
       from: "alexdotjs",
-      createdAt: new Date(2020, 12, 26),
+      createdAt: new Date(2020, 12, 26).toJSON(),
     },
   ],
 };
@@ -21,7 +21,7 @@ export module DB {
   export async function createPost(
     input: Omit<typeof db["posts"][number], "id" | "createdAt">,
   ) {
-    const post = { ...input, id: v4(), createdAt: new Date() };
+    const post = { ...input, id: v4(), createdAt: new Date().toJSON() };
     db.posts.push(post);
     return post;
   }

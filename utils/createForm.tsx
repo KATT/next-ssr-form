@@ -13,8 +13,6 @@ import {
 } from "formik";
 import { IncomingMessage } from "http";
 import { GetServerSidePropsContext } from "next";
-import { deserialize } from "superjson";
-import { SuperJSONResult } from "superjson/dist/types";
 import url from "url";
 import qs from "querystring";
 import * as z from "zod";
@@ -182,11 +180,6 @@ export function createForm<
 
       const endpoints = getEndpoints(ctx.resolvedUrl);
 
-      // make sure to config `generateBuildId` in `next.config.js`
-      const sha = process.env.VERCEL_GIT_COMMIT_SHA;
-      const baseUrl = sha ? `/_next/data/${sha}` : "/_next/data/development";
-      const endpoint = `${baseUrl}${ctx.resolvedUrl}.json`;
-
       const response = await performMutation<TMutationData>(
         body as any,
         mutation,
@@ -213,10 +206,10 @@ export function createForm<
       },
     });
     const json: {
-      pageProps: SuperJSONResult;
+      pageProps: TProps;
     } = await res.json();
 
-    const newProps: TProps = deserialize(json.pageProps);
+    const newProps = json.pageProps;
 
     return {
       newProps,

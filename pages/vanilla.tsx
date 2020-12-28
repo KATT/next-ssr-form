@@ -2,6 +2,7 @@ import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import { createForm } from "utils/createForm";
 import { DB } from "utils/db";
+import { prettyDate } from "utils/prettyDate";
 import * as z from "zod";
 
 export const createPostForm = createForm({
@@ -36,8 +37,7 @@ export default function Home(props: Props) {
       {props.posts.map((item) => (
         <article key={item.id}>
           <strong>
-            From {item.from} at {item.createdAt.toLocaleDateString("sv-SE")}{" "}
-            {item.createdAt.toLocaleTimeString("sv-SE").substr(0, 5)}:
+            From {item.from} at {prettyDate(item.createdAt)}:
           </strong>
           <p className='message'>{item.message}</p>
         </article>
