@@ -20,7 +20,10 @@
     "analyze": "size-limit --why"
   },
   "peerDependencies": {
-    "react": ">=16"
+    "formik": "^2.2.6",
+    "next": "^10.0.4",
+    "react": ">=16",
+    "zod": "^1.11.11"
   },
   "husky": {
     "hooks": {
