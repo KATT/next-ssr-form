@@ -20,7 +20,7 @@ import qs from "querystring";
 import * as z from "zod";
 import { ZodRawShape } from "zod/lib/src/types/base";
 import { getPostBody } from "./getPostBody";
-import { ReactNode, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 
 function throwServerOnlyError(message: string): never {
   throw new Error(`You have access server-only functionality (${message})`);
@@ -307,49 +307,51 @@ export function createForm<
     TMutationData
   >(props: TProps) {
     const [feedback, setFeedback] = useState(getFeedbackFromProps(props));
-    return {
-      Form(formProps: {
+
+    const MyForm = useMemo(() => {
+      return (formProps: {
         children: (formikProps: FormikProps<TValues>) => ReactNode;
         onSuccess?: ({ newProps }: { newProps: TProps }) => void;
-      }) {
-        return (
-          <Formik
-            initialValues={getInitialValues(props)}
-            initialErrors={getInitialErrors(props)}
-            initialTouched={getInitialTouched(props)}
-            validate={formikValidator}
-            onSubmit={async (values, actions) => {
-              try {
-                setFeedback(null);
-                const { newProps } = await clientRequest({
-                  values,
-                  props,
-                });
+      }) => (
+        <Formik
+          initialValues={getInitialValues(props)}
+          initialErrors={getInitialErrors(props)}
+          initialTouched={getInitialTouched(props)}
+          validate={formikValidator}
+          onSubmit={async (values, actions) => {
+            try {
+              setFeedback(null);
+              const { newProps } = await clientRequest({
+                values,
+                props,
+              });
 
-                const feedback = getFeedbackFromProps(newProps);
-                if (!feedback) {
-                  throw new Error("Didn't receive feedback from props");
-                }
-                if (feedback.state === "success") {
-                  actions.resetForm();
-                  formProps.onSuccess && formProps.onSuccess({ newProps });
-                }
-                setFeedback(feedback);
-              } catch (error) {
-                setFeedback({
-                  state: "error",
-                  error,
-                });
+              const feedback = getFeedbackFromProps(newProps);
+              if (!feedback) {
+                throw new Error("Didn't receive feedback from props");
               }
-            }}
-            children={(p) => (
-              <Form method='post' action={props[formId].endpoints.action}>
-                {formProps.children(p)}
-              </Form>
-            )}
-          />
-        );
-      },
+              if (feedback.state === "success") {
+                actions.resetForm();
+                formProps.onSuccess && formProps.onSuccess({ newProps });
+              }
+              setFeedback(feedback);
+            } catch (error) {
+              setFeedback({
+                state: "error",
+                error,
+              });
+            }
+          }}
+          children={(p) => (
+            <Form method='post' action={props[formId].endpoints.action}>
+              {formProps.children(p)}
+            </Form>
+          )}
+        />
+      );
+    }, [props]);
+    return {
+      Form: MyForm,
       feedback,
     };
   }
