@@ -28,7 +28,7 @@ export const createPostForm = createForm({
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 export default function Home(props: Props) {
-  const [posts, setPosts] = useState(props.posts); // todo
+  const [posts, setPosts] = useState(props.posts);
   const reloadPage = useReloadPage();
   const [feedback, setFeedback] = useState<
     | null
@@ -55,7 +55,7 @@ export default function Home(props: Props) {
       </p>
 
       <h2>My guestbook</h2>
-      {posts.map((item) => (
+      {props.posts.map((item) => (
         <article key={item.id}>
           <strong>
             From {item.from} at {item.createdAt.toLocaleDateString("sv-SE")}{" "}
@@ -76,11 +76,12 @@ export default function Home(props: Props) {
               values,
               props,
             });
-            console.log("added post with id", res.data);
-            // refresh posts
+            console.log(
+              "added post with id",
+              res.newProps.createPost.output?.data?.id,
+            );
 
-            await reloadPage();
-
+            setPosts(res.newProps.posts); // refresh posts
             setFeedback({ state: "success" });
             actions.resetForm();
           } catch (err) {

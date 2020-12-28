@@ -155,13 +155,10 @@ export function createForm<
     throwServerOnlyError("getPageProps");
   }
 
-  async function clientRequest<TMutationData>({
-    values,
-    props,
-  }: {
-    props: TPageProps<TMutationData>;
-    values: TValues;
-  }) {
+  async function clientRequest<
+    TProps extends TPageProps<TMutationData>,
+    TMutationData
+  >({ values, props }: { props: TProps; values: TValues }) {
     const envelope: PostEnvelope = {
       formId,
       values,
@@ -180,14 +177,15 @@ export function createForm<
       pageProps: SuperJSONResult;
     } = await res.json();
 
-    const result: TPageProps<TMutationData> = deserialize(json.pageProps);
-    const output = result[formId]?.output;
+    const newProps: TProps = deserialize(json.pageProps);
+    const output = newProps[formId]?.output;
 
     if (!output || !output.success) {
       throw new Error("Not successful response, try reloading the page");
     }
     return {
       data: output.data,
+      newProps,
     };
   }
 
