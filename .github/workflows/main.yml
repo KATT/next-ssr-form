@@ -92,7 +92,8 @@ jobs:
           yarn  --frozen-lockfile --silent
         env:
           CI: true
-          VERCEL_GIT_COMMIT_SHA: build
 
       - name: Build
         run: yarn build
+        env:
+          VERCEL_GIT_COMMIT_SHA: build
