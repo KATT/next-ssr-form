@@ -53,7 +53,6 @@ type PagePropsValue<TMutationData, TValues> = {
      */
     action: string;
   };
-  action: string;
   response: PostResponse<TMutationData, TValues> | null;
 };
 

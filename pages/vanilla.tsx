@@ -1,13 +1,28 @@
-import { createPostZod } from "forms/createPostSchema.server";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { useRouter } from "next/dist/client/router";
-import { getPostBody } from "utils/getPostBody";
-import { DB } from "../forms/db";
+import { useState } from "react";
+import { createForm } from "utils/createForm";
+import { DB } from "utils/db";
+import * as z from "zod";
+
+export const createPostForm = createForm({
+  schema: z.object({
+    message: z.string().min(2),
+    from: z.string().min(4),
+  }),
+  defaultValues: {
+    message: "",
+    from: "",
+  },
+  formId: "createPost",
+});
 
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 export default function Home(props: Props) {
-  const router = useRouter();
-  const { formData } = props;
+  const [feedback, setFeedback] = useState(
+    createPostForm.getFeedbackFromProps(props),
+  );
+  const initalValues = createPostForm.getInitialValues(props);
+  const form = props.createPost;
   return (
     <>
       <h1>Normal http post (zod for validation)</h1>
@@ -29,54 +44,63 @@ export default function Home(props: Props) {
       ))}
       <h3>Add post</h3>
 
-      <form action='?post' method='post'>
+      <form action={props.createPost.endpoints.action} method='post'>
         <p
           className={`field ${
-            formData?.error?.fieldErrors["from"] ? "field--error" : ""
+            form.response?.error?.fieldErrors?.from ? "field--error" : ""
           }`}
         >
           <label>
             Your name:
             <br />
-            <input
-              type='text'
-              name='from'
-              defaultValue={!formData?.success ? formData?.input.from : ""}
-            />
-            {formData?.error?.fieldErrors.from && (
+            <input type='text' name='from' defaultValue={initalValues.from} />
+            {form.response?.error?.fieldErrors?.from && (
               <span className='field__error'>
-                {formData?.error?.fieldErrors.from}
+                {form.response?.error?.fieldErrors?.from}
               </span>
             )}
           </label>
         </p>
         <p
           className={`field ${
-            formData?.error?.fieldErrors["message"] ? "field--error" : ""
+            form.response?.error?.fieldErrors?.message ? "field--error" : ""
           }`}
         >
           <label>
             Your message:
             <br />
-            <textarea
-              name='message'
-              defaultValue={!formData?.success ? formData?.input.message : ""}
-            />
-            {formData?.error?.fieldErrors.message && (
+            <textarea name='message' defaultValue={initalValues.message} />
+            {form.response?.error?.fieldErrors?.message && (
               <span className='field__error'>
-                {formData?.error?.fieldErrors.message}
+                {form.response?.error?.fieldErrors?.message}
               </span>
             )}
           </label>
         </p>
-        <p>
-          <input type='submit' />
-        </p>
-        {formData?.success && (
-          <p className='success'>Yay! Your entry was added</p>
+        <input type='submit' />
+
+        <br />
+        {feedback?.state === "success" && (
+          <span className='feedback success'>Yay! Your entry was added</span>
         )}
-        {formData?.error && (
-          <p className='error'>Your message was not added.</p>
+
+        {feedback?.state === "error" && (
+          <>
+            <span className='feedback error'>
+              Something went wrong: {feedback.error.message}. Full Error:{" "}
+              <pre>
+                {JSON.stringify(
+                  {
+                    ...feedback.error,
+                    message: feedback.error.message,
+                    stack: feedback.error.stack,
+                  },
+                  null,
+                  4,
+                )}
+              </pre>
+            </span>
+          </>
         )}
       </form>
     </>
@@ -84,16 +108,20 @@ export default function Home(props: Props) {
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const body = await getPostBody(ctx.req);
-  const formData = body ? await createPostZod(body as any) : null;
+  const createPostProps = await createPostForm.getPageProps({
+    ctx,
+    async mutation(input) {
+      if (Math.random() < 0.3) {
+        throw new Error("Emulating the mutation failing");
+      }
+      return DB.createPost(input);
+    },
+  });
 
-  if (formData?.success) {
-    ctx.res.statusCode = 201;
-  }
   return {
     props: {
+      ...createPostProps,
       posts: await DB.getAllPosts(),
-      formData,
     },
   };
 };

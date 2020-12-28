@@ -1,7 +1,6 @@
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
-import Link from "next/link";
 import { useState } from "react";
 import { createForm } from "utils/createForm";
 import * as z from "zod";
@@ -10,7 +9,7 @@ import { DB } from "../utils/db";
 export const createPostForm = createForm({
   schema: z.object({
     message: z.string().min(2),
-    from: z.string().min(2),
+    from: z.string().min(4),
   }),
   defaultValues: {
     message: "",
@@ -118,11 +117,9 @@ export default function Home(props: Props) {
                 className='field__error'
               />
             </p>
-            <p>
-              <button type='submit' disabled={isSubmitting}>
-                Submit
-              </button>
-            </p>
+            <button type='submit' disabled={isSubmitting}>
+              Submit
+            </button>
 
             <br />
             {feedback?.state === "success" && (
