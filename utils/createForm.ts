@@ -10,25 +10,22 @@ function throwServerOnlyError(message: string): never {
   throw new Error(`You have access server-only functionality (${message})`);
 }
 
-export type PostResponseOutputError =
+type PostResponseError =
   | {
       type: "ValidationError";
       message: string;
       stack?: string | undefined;
-      errors: {
-        formErrors: string[];
-        fieldErrors: {
-          [k: string]: string[];
-        };
+      fieldErrors: {
+        [k: string]: string[];
       };
     }
   | {
       type: "MutationError";
       message: string;
       stack?: string | undefined;
-      errors?: null;
+      fieldErrors?: null;
     };
-type PostResponseOutput<TMutationData, TValues> =
+type PostResponse<TMutationData, TValues> =
   | {
       success: true;
       input: TValues;
@@ -39,12 +36,12 @@ type PostResponseOutput<TMutationData, TValues> =
       success: false;
       input: TValues;
       data?: null;
-      error: PostResponseOutputError;
+      error: PostResponseError;
     };
 
 type PagePropsValue<TMutationData, TValues> = {
   endpoint: string;
-  output: PostResponseOutput<TMutationData, TValues> | null;
+  response: PostResponse<TMutationData, TValues> | null;
 };
 
 type PostEnvelope = {
@@ -73,20 +70,12 @@ export function createForm<
     TFormId,
     PagePropsValue<TMutationData, TValues>
   >;
-  type TPostResponseOutput<TMutationData> = PostResponseOutput<
-    TMutationData,
-    TValues
-  >;
-
-  type TPagePropsValue<TMutationData> = {
-    endpoint: string;
-    output: PostResponseOutput<TMutationData, TValues> | null;
-  };
+  type TPostResponse<TMutationData> = PostResponse<TMutationData, TValues>;
 
   async function performMutationIfNeeded<TMutationData>(
     body: unknown,
     mutation: (data: TValues) => Promise<TMutationData>,
-  ): Promise<TPostResponseOutput<TMutationData> | null> {
+  ): Promise<TPostResponse<TMutationData> | null> {
     if (!process.browser) {
       let input: null | TValues = null;
       if (
@@ -103,6 +92,7 @@ export function createForm<
 
       if (!parsed.success) {
         const err = parsed.error;
+        const { fieldErrors } = err.flatten();
         return {
           success: false,
           input,
@@ -111,7 +101,7 @@ export function createForm<
             message: err.message,
             stack:
               process.env.NODE_ENV === "development" ? err.stack : undefined,
-            errors: err.flatten(),
+            fieldErrors,
           },
         };
       }
@@ -155,7 +145,10 @@ export function createForm<
       return {
         [formId]: {
           endpoint,
-          output: await performMutationIfNeeded<TMutationData>(body, mutation),
+          response: await performMutationIfNeeded<TMutationData>(
+            body,
+            mutation,
+          ),
         },
       } as TPageProps<TMutationData>;
     }
@@ -197,7 +190,7 @@ export function createForm<
     getInitialValues<TProps extends TPageProps<TMutationData>, TMutationData>(
       props: TProps,
     ): TValues {
-      const res = props[formId].output;
+      const res = props[formId].response;
       if (res?.error && res.input) {
         return res.input;
       }
@@ -206,7 +199,7 @@ export function createForm<
     getInitialErrors<TProps extends TPageProps<TMutationData>, TMutationData>(
       props: TProps,
     ) {
-      const fieldErrors = props[formId].output?.error?.errors?.fieldErrors;
+      const fieldErrors = props[formId].response?.error?.fieldErrors;
       if (!fieldErrors) {
         return undefined;
       }
@@ -221,7 +214,7 @@ export function createForm<
     getInitialTouched<TProps extends TPageProps<TMutationData>, TMutationData>(
       props: TProps,
     ) {
-      const error = props[formId].output?.error;
+      const error = props[formId].response?.error;
       if (!error) {
         return undefined;
       }
@@ -239,7 +232,7 @@ export function createForm<
       TProps extends TPageProps<TMutationData>,
       TMutationData
     >(props: TProps) {
-      const response = props[formId].output;
+      const response = props[formId].response;
       if (!response) {
         return null;
       }

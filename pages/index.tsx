@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { createForm } from "utils/createForm";
 import * as z from "zod";
-import { DB } from "../forms/db";
+import { DB } from "../utils/db";
 
 export const createPostForm = createForm({
   schema: z.object({
@@ -70,10 +70,10 @@ export default function Home(props: Props) {
             if (!feedback) {
               throw new Error("Didn't receive feedback from props");
             }
-            if (newProps.createPost.output?.success) {
+            if (newProps.createPost.response?.success) {
               console.log(
                 "added post with id",
-                newProps.createPost.output.data.id,
+                newProps.createPost.response.data.id,
               );
             }
             setFeedback(feedback);

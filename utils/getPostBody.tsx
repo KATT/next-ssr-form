@@ -28,7 +28,6 @@ export async function getPostBody(req: IncomingMessage) {
         body += chunk;
       });
       req.on("end", () => {
-        console.log("post body", body);
         resolve(parse(body));
       });
     });
