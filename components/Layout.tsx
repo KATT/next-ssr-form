@@ -3,9 +3,9 @@ import Link from "next/link";
 import { ReactNode } from "react";
 
 const routes: [string, string][] = [
-  ["/", "Default HTTP post"],
-  ["/formik", "Formik"],
-  ["/formik-noscript", "Formik (works without js)"],
+  ["/", "Formik"],
+  ["/vanilla", "Vanilla form with HTTP post and no JS"],
+  ["/formik-scaffold", "Scaffolding"],
 ];
 
 export function Layout(props: { children: ReactNode }) {
@@ -18,7 +18,7 @@ export function Layout(props: { children: ReactNode }) {
           <nav>
             {routes.map(([to, title]) => (
               <Link href={to} key={to}>
-                <a key={to} className={to === router.asPath ? "active" : ""}>
+                <a key={to} className={to === router.pathname ? "active" : ""}>
                   {title}
                 </a>
               </Link>

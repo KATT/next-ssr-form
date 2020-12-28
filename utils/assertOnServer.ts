@@ -1,8 +1,7 @@
 export function assertOnServer(desc?: string) {
-  if (typeof window !== 'undefined') {
+  if (process.browser) {
     throw new Error(
-      'Imported server-only functionality on client' + desc ? ` (${desc})` : '',
+      "Imported server-only functionality on client" + desc ? ` (${desc})` : "",
     );
   }
 }
-

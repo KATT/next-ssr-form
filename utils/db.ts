@@ -1,5 +1,4 @@
 import { assertOnServer } from "utils/assertOnServer";
-import * as zod from "zod";
 import { v4 } from "uuid";
 assertOnServer("db.ts");
 
@@ -22,6 +21,8 @@ export module DB {
   export async function createPost(
     input: Omit<typeof db["posts"][number], "id" | "createdAt">,
   ) {
-    db.posts.push({ ...input, id: v4(), createdAt: new Date() });
+    const post = { ...input, id: v4(), createdAt: new Date() };
+    db.posts.push(post);
+    return post;
   }
 }
