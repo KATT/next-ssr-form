@@ -87,6 +87,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.node_version}}-yarn-v4-
 
+      - name: Next.js cache
+        uses: actions/cache@v2
+        with:
+          path: ./.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/yarn-lock.json') }}
+
       - name: Install/build lib
         run: |
           cd ../../
