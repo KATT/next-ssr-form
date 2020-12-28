@@ -3,9 +3,8 @@ import Link from "next/link";
 import { ReactNode } from "react";
 
 const routes: [string, string][] = [
-  ["/", "Default HTTP post"],
-  ["/formik", "Formik"],
-  ["/formik-noscript", "Formik (works without js)"],
+  ["/", "Formik"],
+  ["/vanilla", "Vanilla form with HTTP post and no JS"],
 ];
 
 export function Layout(props: { children: ReactNode }) {
