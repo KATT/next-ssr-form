@@ -20,7 +20,7 @@ import qs from "querystring";
 import * as z from "zod";
 import { ZodRawShape } from "zod/lib/src/types/base";
 import { getPostBody } from "./getPostBody";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useCallback, useMemo, useState } from "react";
 
 function throwServerOnlyError(message: string): never {
   throw new Error(`You have access server-only functionality (${message})`);
@@ -308,8 +308,8 @@ export function createForm<
   >(props: TProps) {
     const [feedback, setFeedback] = useState(getFeedbackFromProps(props));
 
-    const MyForm = useMemo(() => {
-      return (formProps: {
+    const MyForm = useCallback(
+      (formProps: {
         children: (formikProps: FormikProps<TValues>) => ReactNode;
         onSuccess?: ({ newProps }: { newProps: TProps }) => void;
       }) => (
@@ -348,8 +348,9 @@ export function createForm<
             </Form>
           )}
         />
-      );
-    }, [props]);
+      ),
+      [props],
+    );
     return {
       Form: MyForm,
       feedback,
