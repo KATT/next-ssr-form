@@ -17,7 +17,7 @@ export function Layout(props: { children: ReactNode }) {
           <nav>
             {routes.map(([to, title]) => (
               <Link href={to} key={to}>
-                <a key={to} className={to === router.asPath ? "active" : ""}>
+                <a key={to} className={to === router.pathname ? "active" : ""}>
                   {title}
                 </a>
               </Link>

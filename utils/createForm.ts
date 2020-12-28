@@ -13,14 +13,13 @@ function throwServerOnlyError(message: string): never {
   throw new Error(`You have access server-only functionality (${message})`);
 }
 
+type Dict<T> = Record<string, T | undefined>;
 type PostResponseError =
   | {
       type: "ValidationError";
       message: string;
       stack?: string | undefined;
-      fieldErrors: {
-        [k: string]: string[];
-      };
+      fieldErrors: Dict<string[]>;
     }
   | {
       type: "MutationError";
@@ -235,8 +234,11 @@ export function createForm<
         return undefined;
       }
 
-      const errors: Record<string, string | undefined> = {};
+      const errors: Dict<string> = {};
       for (const [key, value] of Object.entries(fieldErrors)) {
+        if (!value) {
+          continue;
+        }
         errors[key] = value.join(", ");
       }
 
