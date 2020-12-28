@@ -1,4 +1,10 @@
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import {
+  ErrorMessage,
+  Field,
+  Form,
+  Formik,
+  setNestedObjectValues,
+} from "formik";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import { ProgressBar } from "../components/ProgressBar";
@@ -22,6 +28,7 @@ export const createPostForm = createForm({
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 export default function Home(props: Props) {
+  const [posts, setPosts] = useState(props.posts); // todo
   const reloadPage = useReloadPage();
   const [feedback, setFeedback] = useState<
     | null
@@ -48,7 +55,7 @@ export default function Home(props: Props) {
       </p>
 
       <h2>My guestbook</h2>
-      {props.posts.map((item) => (
+      {posts.map((item) => (
         <article key={item.id}>
           <strong>
             From {item.from} at {item.createdAt.toLocaleDateString("sv-SE")}{" "}
@@ -67,9 +74,10 @@ export default function Home(props: Props) {
             setFeedback(null);
             const res = await createPostForm.clientRequest({
               values,
-              formProps: props.createPost,
+              props,
             });
-            console.log("added post with id", res!.data!.id);
+            console.log("added post with id", res.data);
+            // refresh posts
 
             await reloadPage();
 
@@ -148,7 +156,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   return {
     props: {
-      createPost,
+      ...createPost,
       posts: await DB.getAllPosts(),
     },
   };

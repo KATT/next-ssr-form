@@ -69,6 +69,10 @@ export function createForm<
   formId: TFormId;
 }) {
   type TValues = z.infer<TSchema>;
+  type TPageProps<TMutationData> = Record<
+    TFormId,
+    PagePropsValue<TMutationData>
+  >;
 
   async function performMutationIfNeeded<TMutationData>(
     body: unknown,
@@ -140,24 +144,29 @@ export function createForm<
       const sha = process.env.VERCEL_GIT_COMMIT_SHA;
       const baseUrl = sha ? `/_next/data/${sha}` : "/_next/data/development";
       const endpoint = `${baseUrl}${ctx.resolvedUrl}.json`;
-
-      return {
+      const val: PagePropsValue<TMutationData> = {
         endpoint,
         output: await performMutationIfNeeded<TMutationData>(body, mutation),
       };
+      return {
+        [formId]: val,
+      } as TPageProps<TMutationData>;
     }
     throwServerOnlyError("getPageProps");
   }
 
-  async function clientRequest<
-    TFormProps extends PagePropsValue<TMutationData>,
-    TMutationData
-  >({ values, formProps }: { formProps: TFormProps; values: TValues }) {
+  async function clientRequest<TMutationData>({
+    values,
+    props,
+  }: {
+    props: TPageProps<TMutationData>;
+    values: TValues;
+  }) {
     const envelope: PostEnvelope = {
       formId,
       values,
     };
-    const res = await fetch(formProps.endpoint, {
+    const res = await fetch(props[formId].endpoint, {
       method: "post",
       body: JSON.stringify(envelope),
       headers: {
@@ -171,14 +180,14 @@ export function createForm<
       pageProps: SuperJSONResult;
     } = await res.json();
 
-    const result: any = deserialize(json.pageProps);
-    const output = result[formId]?.output as TFormProps["output"];
+    const result: TPageProps<TMutationData> = deserialize(json.pageProps);
+    const output = result[formId]?.output;
 
     if (!output || !output.success) {
       throw new Error("Not successful response, try reloading the page");
     }
     return {
-      output, // if i return `output.data` here it becomes `unknown` in the view 🤷‍♂️
+      data: output.data,
     };
   }
 
