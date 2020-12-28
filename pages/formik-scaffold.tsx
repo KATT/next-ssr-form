@@ -1,3 +1,4 @@
+import { ProgressBar } from "components/ProgressBar";
 import { ErrorMessage, Field } from "formik";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useState } from "react";
@@ -51,6 +52,7 @@ export default function Home(props: Props) {
       >
         {({ isSubmitting }) => (
           <>
+            <ProgressBar loading={isSubmitting} />
             <p className='field'>
               <label htmlFor='from'>Name</label>
               <br />

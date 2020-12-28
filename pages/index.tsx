@@ -1,3 +1,4 @@
+import { ProgressBar } from "components/ProgressBar";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/dist/client/router";
@@ -88,6 +89,7 @@ export default function Home(props: Props) {
       >
         {({ isSubmitting }) => (
           <Form method='post' action={props.createPost.endpoints.action}>
+            <ProgressBar loading={isSubmitting} />
             <p className='field'>
               <label htmlFor='from'>Name</label>
               <br />
