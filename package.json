@@ -9,7 +9,7 @@
     "src"
   ],
   "engines": {
-    "node": ">=14"
+    "node": ">=12"
   },
   "scripts": {
     "dev": "yarn start",
@@ -19,7 +19,8 @@
     "lint": "tsdx lint",
     "prepare": "tsdx build",
     "size": "size-limit",
-    "analyze": "size-limit --why"
+    "analyze": "size-limit --why",
+    "postpublish": "cd examples/typescript && yarn add next-ssr-form@next"
   },
   "husky": {
     "hooks": {
