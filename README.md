@@ -111,7 +111,7 @@ export default function Home(props: Props) {
   );
   const initalValues = createPostForm.getInitialValues(props);
   const initialErrors = createPostForm.getInitialErrors(props);
-  const form = props.createPost;
+
   return (
     <>
       <h1>Normal http post (zod for validation)</h1>
@@ -125,7 +125,7 @@ export default function Home(props: Props) {
       {props.posts.map(item => (
         <article key={item.id}>
           <strong>
-            From {item.from} at {prettyDate(item.createdAt)}:
+            From {item.from} at {item.createdAt}:
           </strong>
           <p className="message">{item.message}</p>
         </article>
