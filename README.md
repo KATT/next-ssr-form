@@ -17,11 +17,10 @@ client <-> server with all the nice autocomplete jazz
 - [Formik](https://github.com/formium/formik) as the form library
 
 
-## Table of contents
+**Table of contents:**
 
 - [`next-ssr-form`](#next-ssr-form)
   - [About](#about)
-  - [Table of contents](#table-of-contents)
   - [Get started](#get-started)
     - [0. Install](#0-install)
     - [1. Add form to top of page](#1-add-form-to-top-of-page)
