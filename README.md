@@ -30,7 +30,7 @@ client <-> server with all the nice autocomplete jazz
   - [Author](#author)
 ## Get started
 
-> ℹ️ Easiest thing to do is to look at the pages in [`examples/typescript`](./examples/typescript).
+> ℹ️  Easiest thing to do is to look at the pages in [`examples/typescript`](./examples/typescript).
 
 ### 0. Install
 ```bash
