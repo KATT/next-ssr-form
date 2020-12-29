@@ -31,7 +31,7 @@ export default function Home(props: Props) {
   return (
     <>
       <h1>
-        Formik <code>noscript</code>
+        Formik <code>&lt;noscript&gt;</code>
       </h1>
       <p>
         Uses Formik to HTTP post to Next.js' special page endpoint (
