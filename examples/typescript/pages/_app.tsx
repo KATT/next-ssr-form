@@ -36,6 +36,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <title>JS is PHP</title>
       </Head>
       <Layout>
+        <noscript><strong>ℹ️ JavaScript is disabled ℹ️</strong> </noscript>
         <Component {...pageProps} />
       </Layout>
     </>

@@ -3,37 +3,43 @@
  * This is unmaintainable spaghetti right now
  * ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
  */
-import {
-  Form,
-  Formik,
-  FormikErrors,
-  FormikProps,
-  FormikTouched,
-  setIn,
-} from "formik";
-import { IncomingMessage } from "http";
-import { GetServerSidePropsContext } from "next";
-import url from "url";
-import qs from "querystring";
-import * as z from "zod";
-import { ZodRawShape } from "zod/lib/src/types/base";
-import { getPostBody } from "./getPostBody";
-import { ReactNode, useCallback, useMemo, useState } from "react";
-
+import { Form, Formik, FormikErrors, FormikProps, FormikTouched } from 'formik';
+import { IncomingMessage } from 'http';
+import { GetServerSidePropsContext } from 'next';
+import qs from 'querystring';
+import React, { ReactNode, useCallback, useState } from 'react';
+import * as Stream from 'stream';
+import url from 'url';
+import * as z from 'zod';
+import { ZodRawShape } from 'zod/lib/src/types/base';
+import { getPostBody } from './getPostBody';
 function throwServerOnlyError(message: string): never {
   throw new Error(`You have access server-only functionality (${message})`);
 }
 
-type Dict<T> = Record<string, T | undefined>;
+export interface MockIncomingMessage extends Stream.Readable {
+  method: string;
+  url: string;
+}
+export interface MockGetServerSidePropsContext {
+  req: MockIncomingMessage;
+  resolvedUrl: string;
+}
+
+type FieldError = {
+  path: (string | number)[];
+  message: string;
+};
+// type Dict<T> = Record<string, T | undefined>;
 type PostResponseError =
   | {
-      type: "ValidationError";
+      type: 'ValidationError';
       message: string;
       stack?: string | undefined;
-      fieldErrors: Dict<string[]>;
+      fieldErrors: FieldError[];
     }
   | {
-      type: "MutationError";
+      type: 'MutationError';
       message: string;
       stack?: string | undefined;
       fieldErrors?: null;
@@ -91,7 +97,7 @@ export function createForm<
 
   async function performMutation<TMutationData>(
     input: TValues,
-    mutation: (data: TValues) => Promise<TMutationData>,
+    mutation: (data: TValues) => Promise<TMutationData>
   ): Promise<TPostResponse<TMutationData> | null> {
     if (!process.browser) {
       if (!input) {
@@ -101,15 +107,19 @@ export function createForm<
 
       if (!parsed.success) {
         const err = parsed.error;
-        const { fieldErrors } = err.flatten();
+
+        const fieldErrors: FieldError[] = [];
+        for (const { path, message } of err.errors) {
+          fieldErrors.push({ path, message });
+        }
         return {
           success: false,
           input,
           error: {
-            type: "ValidationError",
+            type: 'ValidationError',
             message: err.message,
             stack:
-              process.env.NODE_ENV === "development" ? err.stack : undefined,
+              process.env.NODE_ENV === 'development' ? err.stack : undefined,
             fieldErrors,
           },
         };
@@ -126,18 +136,20 @@ export function createForm<
           input,
           success: false as const,
           error: {
-            type: "MutationError",
+            type: 'MutationError',
             message: err.message,
             stack:
-              process.env.NODE_ENV === "development" ? err.stack : undefined,
+              process.env.NODE_ENV === 'development' ? err.stack : undefined,
           },
         };
       }
     }
-    throwServerOnlyError("serverRequest()");
+    throwServerOnlyError('serverRequest()');
   }
 
-  async function getPostBodyForForm(req: IncomingMessage) {
+  async function getPostBodyForForm(
+    req: IncomingMessage | MockIncomingMessage
+  ) {
     if (req.url?.endsWith(`?formId=${encodeURIComponent(formId)}`)) {
       return getPostBody(req);
     }
@@ -146,17 +158,17 @@ export function createForm<
   function getEndpoints(resolvedUrl: string) {
     if (!process.browser) {
       const currentUrl = url.parse(resolvedUrl);
-      const currentQuery = qs.parse(currentUrl.query ?? "");
+      const currentQuery = qs.parse(currentUrl.query ?? '');
       const newQuery = qs.stringify({ ...currentQuery, formId });
 
       // make sure to config `generateBuildId` in `next.config.js`
       const sha = process.env.VERCEL_GIT_COMMIT_SHA;
       const endpointPrefix = sha
         ? `/_next/data/${sha}`
-        : "/_next/data/development";
+        : '/_next/data/development';
 
       const fetchPathname =
-        currentUrl.pathname === "/" ? "/index" : currentUrl.pathname;
+        currentUrl.pathname === '/' ? '/index' : currentUrl.pathname;
 
       const fetchEndpoint = `${endpointPrefix}${fetchPathname}.json?${newQuery}`;
       const action = `${currentUrl.pathname}?${newQuery}`;
@@ -166,13 +178,16 @@ export function createForm<
       };
     }
 
-    throwServerOnlyError("getEndpoints()");
+    throwServerOnlyError('getEndpoints()');
   }
-  async function getPageProps<TMutationData>({
+  async function getPageProps<
+    TMutationData,
+    TContext extends MockGetServerSidePropsContext | GetServerSidePropsContext
+  >({
     ctx,
     mutation,
   }: {
-    ctx: GetServerSidePropsContext;
+    ctx: TContext;
     mutation: (data: TValues) => Promise<TMutationData>;
   }) {
     if (!process.browser) {
@@ -182,7 +197,7 @@ export function createForm<
 
       const response = await performMutation<TMutationData>(
         body as any,
-        mutation,
+        mutation
       );
       return {
         [formId]: {
@@ -191,7 +206,7 @@ export function createForm<
         },
       } as TPageProps<TMutationData>;
     }
-    throwServerOnlyError("getPageProps");
+    throwServerOnlyError('getPageProps');
   }
 
   async function clientRequest<
@@ -199,10 +214,10 @@ export function createForm<
     TMutationData
   >({ values, props }: { props: TProps; values: TValues }) {
     const res = await fetch(props[formId].endpoints.fetch, {
-      method: "post",
+      method: 'post',
       body: JSON.stringify(values),
       headers: {
-        "content-type": "application/json",
+        'content-type': 'application/json',
       },
     });
     const json: {
@@ -226,6 +241,26 @@ export function createForm<
     return defaultValues;
   }
 
+  function fieldErrorsToFormikErrors(fieldErrors: FieldError[]) {
+    let errors: FormikErrors<TValues> = {};
+    for (const { path, message } of fieldErrors) {
+      let current: any = errors;
+      const parts = [...path];
+      const last = parts.pop()!;
+      for (let index = 0; index < parts.length; index++) {
+        const part = parts[index];
+        const next = parts[index + 1];
+        if (current[part] === undefined) {
+          current[part] = typeof next === 'number' ? [] : {};
+        }
+        current = current[part];
+      }
+      current[last] = message;
+    }
+
+    return errors;
+  }
+
   function getInitialErrors<
     TProps extends TPageProps<TMutationData>,
     TMutationData
@@ -235,15 +270,7 @@ export function createForm<
       return undefined;
     }
 
-    const errors: Dict<string> = {};
-    for (const [key, value] of Object.entries(fieldErrors)) {
-      if (!value) {
-        continue;
-      }
-      errors[key] = value.join(", ");
-    }
-
-    return errors as FormikErrors<TValues>;
+    return fieldErrorsToFormikErrors(fieldErrors);
   }
   function getFeedbackFromProps<
     TProps extends TPageProps<TMutationData>,
@@ -256,12 +283,12 @@ export function createForm<
 
     if (response.success) {
       return {
-        state: "success" as const,
+        state: 'success' as const,
       };
     }
 
     return {
-      state: "error" as const,
+      state: 'error' as const,
       error: response.error as typeof response.error | Error,
     };
   }
@@ -269,11 +296,8 @@ export function createForm<
     let errors: FormikErrors<TValues> = {};
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
-      for (const err of parsed.error.errors) {
-        errors = setIn(errors, err.path.join("."), err.message);
-      }
+      errors = fieldErrorsToFormikErrors(parsed.error.errors);
     }
-    // console.log("errors", errors);
     return errors;
   }
 
@@ -289,7 +313,7 @@ export function createForm<
     const touched: Record<string, boolean> = {};
 
     for (const key in defaultValues) {
-      // not deep setting
+      // todo: not deep setting
       touched[key] = true;
     }
 
@@ -323,26 +347,26 @@ export function createForm<
               if (!feedback) {
                 throw new Error("Didn't receive feedback from props");
               }
-              if (feedback.state === "success") {
+              if (feedback.state === 'success') {
                 actions.resetForm();
                 formProps.onSuccess && formProps.onSuccess({ newProps });
               }
               setFeedback(feedback);
             } catch (error) {
               setFeedback({
-                state: "error",
+                state: 'error',
                 error,
               });
             }
           }}
-          children={(p) => (
-            <Form method='post' action={props[formId].endpoints.action}>
+          children={p => (
+            <Form method="post" action={props[formId].endpoints.action}>
               {formProps.children(p)}
             </Form>
           )}
         />
       ),
-      [props],
+      [props]
     );
     return {
       Form: MyForm,
@@ -359,6 +383,6 @@ export function createForm<
     getInitialTouched,
     getFeedbackFromProps,
     formikValidator,
-    useFormikScaffold,
+    _unstable_useFormikScaffold: useFormikScaffold,
   };
 }

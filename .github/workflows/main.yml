@@ -1,0 +1,110 @@
+name: CI
+on: [push]
+jobs:
+  build:
+    name: Build, lint, & test lib
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node: ['14.x'] # ['12.x', '14.x']
+        os: [ubuntu-latest, windows-latest] # [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache node_modules
+        id: yarn-cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            **/node_modules
+            /home/runner/.cache/Cypress
+            C:\Users\runneradmin\AppData\Local\Cypress\Cache
+            **/.next/cache
+          key: ${{ runner.os }}-${{ runner.node_version}}-yarn-v4-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.node_version}}-yarn-v4-
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --silent --ignore-scripts
+        env:
+          CI: true
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Test
+        run: yarn test --ci --coverage --maxWorkers=2
+
+      - name: Build
+        run: yarn build
+
+  typescript-example:
+    name: Build & Run Cypress on Example
+    defaults:
+      run:
+        working-directory: examples/typescript
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node: ['14.x'] # ['12.x', '14.x']
+        os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache node_modules
+        id: yarn-cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            **/node_modules
+            /home/runner/.cache/Cypress
+            C:\Users\runneradmin\AppData\Local\Cypress\Cache
+            **/.next/cache
+          key: ${{ runner.os }}-${{ runner.node_version}}-yarn-typescript-example-v4-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.node_version}}-yarn-typescript-example-v4-
+
+      # - name: Install/link lib
+      #   run: |
+      #     cd ../../
+      #     yarn --frozen-lockfile --silent
+      #     yarn link
+      #   env:
+      #     CI: true
+
+      - name: Install
+        run: |
+          yarn --silent
+        env:
+          CI: true
+
+      - name: Build
+        run: yarn build
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v2
+        with:
+          start: yarn start
+          working-directory: examples/typescript
