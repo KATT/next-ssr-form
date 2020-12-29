@@ -1,11 +1,11 @@
-import { useRouter } from "next/dist/client/router";
-import Link from "next/link";
-import { ReactNode } from "react";
+import { useRouter } from 'next/dist/client/router';
+import Link from 'next/link';
+import { ReactNode } from 'react';
 
 const routes: [string, string][] = [
-  ["/", "Formik"],
-  ["/vanilla", "Vanilla form with HTTP post and no JS"],
-  ["/formik-scaffold", "Scaffolding"],
+  ['/', 'Formik'],
+  ['/vanilla', 'Vanilla form with HTTP post and no JS'],
+  ['/formik-scaffold', 'Scaffolding'],
 ];
 
 export function Layout(props: { children: ReactNode }) {
@@ -13,12 +13,12 @@ export function Layout(props: { children: ReactNode }) {
 
   return (
     <>
-      <div className='wrapper'>
+      <div className="wrapper">
         <header>
           <nav>
             {routes.map(([to, title]) => (
               <Link href={to} key={to}>
-                <a key={to} className={to === router.pathname ? "active" : ""}>
+                <a key={to} className={to === router.pathname ? 'active' : ''}>
                   {title}
                 </a>
               </Link>
@@ -31,7 +31,7 @@ export function Layout(props: { children: ReactNode }) {
         <h2>About what you're looking at</h2>
         <ul>
           <li>
-            We're using <code>getServerSideProps</code> to receive{" "}
+            We're using <code>getServerSideProps</code> to receive{' '}
             <code>POST</code> data.
           </li>
           <li>
@@ -58,9 +58,9 @@ export function Layout(props: { children: ReactNode }) {
         <hr />
         <footer>
           <p>
-            Made by <a href='https://twitter.com/alexdotjs'>@alexdotjs</a>.
-            Source at{" "}
-            <a href='https://github.com/KATT/js-is-php'>
+            Made by <a href="https://twitter.com/alexdotjs">@alexdotjs</a>.
+            Source at{' '}
+            <a href="https://github.com/KATT/js-is-php">
               github.com/KATT/js-is-php
             </a>
           </p>
