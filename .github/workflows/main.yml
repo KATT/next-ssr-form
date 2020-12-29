@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         node: ['14.x'] # ['12.x', '14.x']
-        os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest, windows-latest] # [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
       - name: Checkout repo
@@ -49,8 +49,8 @@ jobs:
       - name: Build
         run: yarn build
 
-  build-typescript-example:
-    name: Build Example
+  typescript-example:
+    name: Build & Run Cypress on Example
     defaults:
       run:
         working-directory: examples/typescript
@@ -82,24 +82,29 @@ jobs:
             /home/runner/.cache/Cypress
             C:\Users\runneradmin\AppData\Local\Cypress\Cache
             **/.next/cache
-          key: ${{ runner.os }}-${{ runner.node_version}}-yarn-v4-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-${{ runner.node_version}}-yarn-typescript-example-v4-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ runner.node_version}}-yarn-v4-
+            ${{ runner.os }}-${{ runner.node_version}}-yarn-typescript-example-v4-
 
-      - name: Install/link lib
-        run: |
-          cd ../../
-          yarn --frozen-lockfile --silent
-          yarn link
-        env:
-          CI: true
+      # - name: Install/link lib
+      #   run: |
+      #     cd ../../
+      #     yarn --frozen-lockfile --silent
+      #     yarn link
+      #   env:
+      #     CI: true
 
       - name: Install
         run: |
-          yarn link next-ssr-form
           yarn --silent
         env:
           CI: true
 
       - name: Build
         run: yarn build
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v2
+        with:
+          start: yarn start
+          working-directory: examples/typescript

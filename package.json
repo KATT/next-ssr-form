@@ -1,6 +1,6 @@
 {
   "name": "next-ssr-form",
-  "version": "0.1.0-2",
+  "version": "0.1.0-3",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -9,7 +9,7 @@
     "src"
   ],
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "scripts": {
     "dev": "yarn start",
@@ -25,6 +25,11 @@
     "hooks": {
       "pre-commit": "tsdx lint"
     }
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/examples/"
+    ]
   },
   "prettier": {
     "printWidth": 80,
@@ -49,7 +54,7 @@
     "formik": ">=2",
     "next": ">=10",
     "react": ">=17",
-    "zod": "^>=1"
+    "zod": ">=1"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.9.1",

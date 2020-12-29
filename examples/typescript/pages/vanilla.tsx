@@ -33,7 +33,7 @@ export default function Home(props: Props) {
         <code>getServerSideProps</code> and feedback is passed through page
         props.
       </p>
-      <h2>My Guestbook</h2>
+      <h2>My guestbook</h2>
       {props.posts.map(item => (
         <article key={item.id}>
           <strong>
@@ -111,9 +111,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const createPostProps = await createPostForm.getPageProps({
     ctx,
     async mutation(input) {
-      if (Math.random() < 0.3) {
-        throw new Error('Emulating the mutation failing');
-      }
+      // if (Math.random() < 0.3) {
+      //   throw new Error('Emulating the mutation failing');
+      // }
       return DB.createPost(input);
     },
   });

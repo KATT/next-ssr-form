@@ -3344,10 +3344,10 @@ neo-async@^2.5.0, neo-async@^2.6.1, neo-async@^2.6.2:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
-next-ssr-form@0.1.0-1:
-  version "0.1.0-1"
-  resolved "https://registry.npmjs.org/next-ssr-form/-/next-ssr-form-0.1.0-1.tgz#de4a8deec6f9ab9385e126c553bb31db4d001651"
-  integrity sha512-el3M0sn9PqpwdkVNop6AGqieWW5svss05XbBjcWCcBv4VUj4A7/lq8jV43+JZV61NpXvGNTl1TeN3jVUo03zRw==
+next-ssr-form@0.1.0-3:
+  version "0.1.0-3"
+  resolved "https://registry.npmjs.org/next-ssr-form/-/next-ssr-form-0.1.0-3.tgz#d1dc6cfc9d613820925fb3e1c2deb3fa079bd035"
+  integrity sha512-ckzIiHJY+xL4+GAnB83lXPJzmbYSeJk+/3ZnJYqJmPpbaJr4Tb5yS5bsE5h64eGL+Zg3y2cga+BsXzE48iFn/g==
 
 next-tick@~1.0.0:
   version "1.0.0"
@@ -4013,7 +4013,7 @@ rc@^1.2.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-dom@17.0.1, react-dom@^17.0.1:
+react-dom@17.0.1:
   version "17.0.1"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-17.0.1.tgz#1de2560474ec9f0e334285662ede52dbc5426fc6"
   integrity sha512-6eV150oJZ9U2t9svnsspTMrWNyHc6chX0KzDeAOXftRa8bNeOKTTfCJ7KorIwenkHd2xqVTBTCZd79yk/lx/Ug==
@@ -4037,7 +4037,7 @@ react-refresh@0.8.3:
   resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.8.3.tgz#721d4657672d400c5e3c75d063c4a85fb2d5d68f"
   integrity sha512-X8jZHc7nCMjaCqoU+V2I0cOhNW+QMBwSUkeXnTi8IPe6zaRWfn60ZzvFDZqWPfmSJfjub7dDW1SP0jaHWLu/hg==
 
-react@17.0.1, react@^17.0.1:
+react@17.0.1:
   version "17.0.1"
   resolved "https://registry.yarnpkg.com/react/-/react-17.0.1.tgz#6e0600416bd57574e3f86d92edba3d9008726127"
   integrity sha512-lG9c9UuMHdcAexXtigOZLX8exLWkW0Ku29qPRU8uhF2R9BN96dLCt0psvzPLlHc5OWkgymP3qwTRgbnw5BKx3w==

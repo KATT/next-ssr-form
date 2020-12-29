@@ -121,9 +121,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const createPostProps = await createPostForm.getPageProps({
     ctx,
     async mutation(input) {
-      if (Math.random() < 0.5) {
-        throw new Error('Emulating the mutation failing');
-      }
+      // if (Math.random() < 0.5) {
+      //   throw new Error('Emulating the mutation failing');
+      // }
       return DB.createPost(input);
     },
   });
