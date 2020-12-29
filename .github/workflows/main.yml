@@ -83,15 +83,10 @@ jobs:
             **/node_modules
             /home/runner/.cache/Cypress
             C:\Users\runneradmin\AppData\Local\Cypress\Cache
+            **/.next/cache
           key: ${{ runner.os }}-${{ runner.node_version}}-yarn-v4-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.node_version}}-yarn-v4-
-
-      - name: Next.js cache
-        uses: actions/cache@v2
-        with:
-          path: ./.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install/build lib
         run: |
