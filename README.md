@@ -33,7 +33,7 @@
 
 ### 0. Install
 ```bash
-yarn add next-ssr-form zod formik
+yarn add next-ssr-form@next zod formik
 ```
 
 ### 1. Add form to top of page
