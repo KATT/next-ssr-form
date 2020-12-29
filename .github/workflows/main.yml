@@ -6,8 +6,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: ['14.x']
-        os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
+        node: ['10.x', '12.x', '14.x']
+        os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
       - name: Checkout repo
@@ -57,8 +57,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: ['14.x']
-        os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
+        node: ['10.x', '12.x', '14.x']
+        os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
       - name: Checkout repo
