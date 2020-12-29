@@ -23,7 +23,7 @@ type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 export default function Home(props: Props) {
   const [posts, setPosts] = useState(props.posts);
-  const { Form, feedback } = createPostForm.useFormikScaffold(props);
+  const { Form, feedback } = createPostForm._unstable_useFormikScaffold(props);
 
   return (
     <>
