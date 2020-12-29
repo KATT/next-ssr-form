@@ -3,18 +3,12 @@
  * This is unmaintainable spaghetti right now
  * ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
  */
-import {
-  Form,
-  Formik,
-  FormikErrors,
-  FormikProps,
-  FormikTouched
-} from 'formik';
+import { Form, Formik, FormikErrors, FormikProps, FormikTouched } from 'formik';
 import { IncomingMessage } from 'http';
 import { GetServerSidePropsContext } from 'next';
 import qs from 'querystring';
 import React, { ReactNode, useCallback, useState } from 'react';
-import type * as Stream from 'stream';
+import * as Stream from 'stream';
 import url from 'url';
 import * as z from 'zod';
 import { ZodRawShape } from 'zod/lib/src/types/base';
@@ -33,9 +27,9 @@ export interface MockGetServerSidePropsContext {
 }
 
 type FieldError = {
-  path: (string | number)[],
+  path: (string | number)[];
   message: string;
-}
+};
 // type Dict<T> = Record<string, T | undefined>;
 type PostResponseError =
   | {
@@ -113,10 +107,10 @@ export function createForm<
 
       if (!parsed.success) {
         const err = parsed.error;
-        
-        const fieldErrors: FieldError[] = []
-        for (const {path,message} of err.errors) {
-          fieldErrors.push({path, message})
+
+        const fieldErrors: FieldError[] = [];
+        for (const { path, message } of err.errors) {
+          fieldErrors.push({ path, message });
         }
         return {
           success: false,
@@ -153,7 +147,9 @@ export function createForm<
     throwServerOnlyError('serverRequest()');
   }
 
-  async function getPostBodyForForm(req: IncomingMessage | MockIncomingMessage) {
+  async function getPostBodyForForm(
+    req: IncomingMessage | MockIncomingMessage
+  ) {
     if (req.url?.endsWith(`?formId=${encodeURIComponent(formId)}`)) {
       return getPostBody(req);
     }
@@ -184,7 +180,10 @@ export function createForm<
 
     throwServerOnlyError('getEndpoints()');
   }
-  async function getPageProps<TMutationData, TContext extends (MockGetServerSidePropsContext | GetServerSidePropsContext)>({
+  async function getPageProps<
+    TMutationData,
+    TContext extends MockGetServerSidePropsContext | GetServerSidePropsContext
+  >({
     ctx,
     mutation,
   }: {
@@ -243,20 +242,20 @@ export function createForm<
   }
 
   function fieldErrorsToFormikErrors(fieldErrors: FieldError[]) {
-    let errors: FormikErrors<TValues> = {}
-    for (const {path, message} of fieldErrors) {
+    let errors: FormikErrors<TValues> = {};
+    for (const { path, message } of fieldErrors) {
       let current: any = errors;
-      const parts = [...path]
-      const last = parts.pop()!
+      const parts = [...path];
+      const last = parts.pop()!;
       for (let index = 0; index < parts.length; index++) {
-        const part = parts[index]
-        const next = parts[index + 1]
+        const part = parts[index];
+        const next = parts[index + 1];
         if (current[part] === undefined) {
-          current[part] = typeof next === 'number' ? [] : {}
+          current[part] = typeof next === 'number' ? [] : {};
         }
-        current = current[part]
+        current = current[part];
       }
-      current[last] = message
+      current[last] = message;
     }
 
     return errors;
@@ -271,7 +270,7 @@ export function createForm<
       return undefined;
     }
 
-    return fieldErrorsToFormikErrors(fieldErrors)
+    return fieldErrorsToFormikErrors(fieldErrors);
   }
   function getFeedbackFromProps<
     TProps extends TPageProps<TMutationData>,
@@ -297,7 +296,7 @@ export function createForm<
     let errors: FormikErrors<TValues> = {};
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
-      errors = fieldErrorsToFormikErrors(parsed.error.errors)
+      errors = fieldErrorsToFormikErrors(parsed.error.errors);
     }
     return errors;
   }
