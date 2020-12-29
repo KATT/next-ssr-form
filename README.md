@@ -4,12 +4,12 @@
 
 ## About
 
-- 🔨  Uses Next.js' `getServerSideProps` to both fetch and provide helpers to 
-- ♻️  E2E type safety! TypeScript types inferred between 
+- 🔨  Uses Next.js' `getServerSideProps` to receive post data and provide helpers to the page to render the form
+- ♻️  E2E type safety! TypeScript types inferred between client & server
+- 🔐  Server-side data validation that's propagated to page props. Even your `mutation`'s return values are inferred.
 - ☁️  Allow you to write data straight to the db with confidence
 client <-> server with all the nice autocomplete jazz
-- 🔐  Server-side data validation that's propagated to page props
-- 🤘  Works without JS enabled!
+- 🤘  Your page will works without JS enabled (if you want it to)
 
 **(Peer) Dependencies:**
 
@@ -62,14 +62,19 @@ export const createPostForm = createForm({
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const createPostProps = await createPostForm.getPageProps({
     ctx,
+    /**
+     * Your mutation function
+     * - Will only be called when there's a POST to this form based on the `formId`
+     * - 🌟 The `input` will be validated by the schema & the types inferred!
+     */
     async mutation(input) {
-      // 🌟 `input` will be type inferred!
       return DB.createPost(input);
     },
   });
 
   return {
     props: {
+      // spread properties onto the prop
       ...createPostProps,
       posts: await DB.getAllPosts(),
     },

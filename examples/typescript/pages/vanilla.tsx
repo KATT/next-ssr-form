@@ -24,7 +24,6 @@ export default function Home(props: Props) {
   );
   const initalValues = createPostForm.getInitialValues(props);
   const initialErrors = createPostForm.getInitialErrors(props);
-  const form = props.createPost;
   return (
     <>
       <h1>Normal http post (zod for validation)</h1>
