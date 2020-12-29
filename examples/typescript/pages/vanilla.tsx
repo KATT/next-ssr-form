@@ -23,6 +23,7 @@ export default function Home(props: Props) {
     createPostForm.getFeedbackFromProps(props)
   );
   const initalValues = createPostForm.getInitialValues(props);
+  const initialErrors = createPostForm.getInitialErrors(props);
   const form = props.createPost;
   return (
     <>
@@ -45,35 +46,23 @@ export default function Home(props: Props) {
       <h3>Add post</h3>
 
       <form action={props.createPost.endpoints.action} method="post">
-        <p
-          className={`field ${
-            form.response?.error?.fieldErrors?.from ? 'field--error' : ''
-          }`}
-        >
+        <p className={`field ${initialErrors?.from ? 'field--error' : ''}`}>
           <label>
             Your name:
             <br />
             <input type="text" name="from" defaultValue={initalValues.from} />
-            {form.response?.error?.fieldErrors?.from && (
-              <span className="field__error">
-                {form.response?.error?.fieldErrors?.from}
-              </span>
+            {initialErrors?.from && (
+              <span className="field__error">{initialErrors.from}</span>
             )}
           </label>
         </p>
-        <p
-          className={`field ${
-            form.response?.error?.fieldErrors?.message ? 'field--error' : ''
-          }`}
-        >
+        <p className={`field ${initialErrors?.message ? 'field--error' : ''}`}>
           <label>
             Your message:
             <br />
             <textarea name="message" defaultValue={initalValues.message} />
-            {form.response?.error?.fieldErrors?.message && (
-              <span className="field__error">
-                {form.response?.error?.fieldErrors?.message}
-              </span>
+            {initialErrors?.message && (
+              <span className="field__error">{initialErrors.message}</span>
             )}
           </label>
         </p>
