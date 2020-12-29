@@ -21,12 +21,6 @@
     "size": "size-limit",
     "analyze": "size-limit --why"
   },
-  "peerDependencies": {
-    "formik": ">=2",
-    "next": ">=10",
-    "react": ">=17",
-    "zod": "^>=17"
-  },
   "husky": {
     "hooks": {
       "pre-commit": "tsdx lint"
@@ -50,6 +44,13 @@
       "limit": "10 KB"
     }
   ],
+  "dependencies": {},
+  "peerDependencies": {
+    "formik": ">=2",
+    "next": ">=10",
+    "react": ">=17",
+    "zod": "^>=1"
+  },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.9.1",
     "@types/react": "^17.0.0",

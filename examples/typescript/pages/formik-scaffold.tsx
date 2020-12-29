@@ -2,7 +2,7 @@ import { ProgressBar } from 'components/ProgressBar';
 import { ErrorMessage, Field } from 'formik';
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { useState } from 'react';
-import { createForm, MiniTest } from 'next-ssr-form';
+import { createForm, MiniTest, useStupidHook } from 'next-ssr-form';
 import { prettyDate } from 'utils/prettyDate';
 import * as z from 'zod';
 import { DB } from '../utils/db';
@@ -35,11 +35,12 @@ type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 export default function Home(props: Props) {
   const [posts, setPosts] = useState(props.posts);
-  const fafa = createPostForm.useFormikScaffold(props);
-
+  // const fafa = createPostForm.useFormikScaffold(props);
+  const [state] = useStupidHook('test');
   return (
     <div>
       <h1>Formik scaffold</h1>
+      <pre>{JSON.stringify(state, null, 4)}</pre>
       <p>
         Like the <a href="/">first example</a> but scaffold a lot of code for
         you
