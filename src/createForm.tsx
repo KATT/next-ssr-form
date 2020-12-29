@@ -363,3 +363,26 @@ export function createForm<
     useFormikScaffold,
   };
 }
+
+export class MiniTest<
+  TSchema extends z.ZodObject<TSchemaShape>,
+  TSchemaShape extends ZodRawShape,
+  TFormId extends string
+> {
+  public schema: TSchema;
+  public defaultValues: z.infer<TSchema>;
+  public formId: TFormId;
+
+  constructor(opts: {
+    schema: TSchema;
+    defaultValues: z.infer<TSchema>;
+    /**
+     * A unique identifier for the form on the page, will used to identifiy it in the post receiver
+     */
+    formId: TFormId;
+  }) {
+    this.defaultValues = opts.defaultValues;
+    this.schema = opts.schema;
+    this.formId = opts.formId;
+  }
+}

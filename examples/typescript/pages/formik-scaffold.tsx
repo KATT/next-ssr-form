@@ -2,12 +2,24 @@ import { ProgressBar } from 'components/ProgressBar';
 import { ErrorMessage, Field } from 'formik';
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { useState } from 'react';
-import { createForm } from 'next-ssr-form';
+import { createForm, MiniTest } from 'next-ssr-form';
 import { prettyDate } from 'utils/prettyDate';
 import * as z from 'zod';
 import { DB } from '../utils/db';
 
-export const createPostForm = createForm({
+// export const createPostForm = createForm({
+//   schema: z.object({
+//     from: z.string().min(2),
+//     message: z.string().min(4),
+//   }),
+//   defaultValues: {
+//     message: '',
+//     from: '',
+//   },
+//   formId: 'createPost',
+// });
+
+const instance = new MiniTest({
   schema: z.object({
     from: z.string().min(2),
     message: z.string().min(4),
@@ -23,10 +35,10 @@ type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 export default function Home(props: Props) {
   const [posts, setPosts] = useState(props.posts);
-  const { Form, feedback } = createPostForm.useFormikScaffold(props);
+  const fafa = createPostForm.useFormikScaffold(props);
 
   return (
-    <>
+    <div>
       <h1>Formik scaffold</h1>
       <p>
         Like the <a href="/">first example</a> but scaffold a lot of code for
@@ -44,7 +56,7 @@ export default function Home(props: Props) {
         </article>
       ))}
       <h3>Add post</h3>
-
+      {/* 
       <Form
         onSuccess={({ newProps }) => {
           setPosts(newProps.posts);
@@ -112,25 +124,25 @@ export default function Home(props: Props) {
             {isSubmitting && <span className="feedback">Loading...</span>}
           </>
         )}
-      </Form>
-    </>
+      </Form> */}
+    </div>
   );
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const createPostProps = await createPostForm.getPageProps({
-    ctx,
-    async mutation(input) {
-      if (Math.random() < 0.5) {
-        throw new Error('Emulating the mutation failing');
-      }
-      return DB.createPost(input);
-    },
-  });
+  // const createPostProps = await createPostForm.getPageProps({
+  //   ctx,
+  //   async mutation(input) {
+  //     if (Math.random() < 0.5) {
+  //       throw new Error('Emulating the mutation failing');
+  //     }
+  //     return DB.createPost(input);
+  //   },
+  // });
 
   return {
     props: {
-      ...createPostProps,
+      // ...createPostProps,
       posts: await DB.getAllPosts(),
     },
   };
