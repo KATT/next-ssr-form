@@ -1,6 +1,6 @@
 # `next-ssr-form` 
 
-> ⚠️ This is an experimental library and it might be discontinued
+> **⚠️ This is an experimental library and is likely to be discontinued**
 
 ## About
 
