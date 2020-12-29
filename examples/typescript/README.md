@@ -78,9 +78,9 @@ Your data usage is now typesafe!
 ### 4. Use form
 
 
-- Formik: Simple example with code scaffolding: [`pages/formik-scaffold.tsx`](https://github.com/KATT/js-is-php/blob/main/pages/formik-scaffold.tsx) or 
-- Formik: More verbose example: [`pages/index.tsx`](https://github.com/KATT/js-is-php/blob/main/pages/index.tsx)
-- Without form library: [`pages/vanilla.tsx`](https://github.com/KATT/js-is-php/blob/main/pages/vanilla.tsx)
+- Formik: Simple example with code scaffolding: [`pages/formik-scaffold.tsx`](./pages/formik-scaffold.tsx) or 
+- Formik: More verbose example: [`pages/index.tsx`](./pages/index.tsx)
+- Without form library: [`pages/vanilla.tsx`](./pages/vanilla.tsx)
 
 
 ## Author

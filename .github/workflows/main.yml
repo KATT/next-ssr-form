@@ -3,13 +3,10 @@ on: [push]
 jobs:
   build:
     name: Build, lint, and test on Node ${{ matrix.node }} and ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: next-form
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: ["14.x"]
+        node: ['14.x']
         os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
@@ -56,11 +53,11 @@ jobs:
     name: Build example
     defaults:
       run:
-        working-directory: next-form/examples/typescript
+        working-directory: examples/typescript
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: ["14.x"]
+        node: ['14.x']
         os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:

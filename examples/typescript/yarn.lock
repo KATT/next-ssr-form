@@ -2287,7 +2287,7 @@ neo-async@^2.5.0, neo-async@^2.6.1, neo-async@^2.6.2:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
 
-next-form@../../:
+next-ssr-form@../../:
   version "0.1.0"
 
 next-tick@~1.0.0:

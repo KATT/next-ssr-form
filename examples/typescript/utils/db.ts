@@ -1,5 +1,5 @@
 import { v4 } from 'uuid';
-import { assertOnServer } from 'next-form';
+import { assertOnServer } from 'next-ssr-form';
 assertOnServer('db.ts');
 
 const db = {

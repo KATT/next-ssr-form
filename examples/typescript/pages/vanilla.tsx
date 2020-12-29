@@ -1,6 +1,6 @@
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { useState } from 'react';
-import { createForm } from 'next-form';
+import { createForm } from 'next-ssr-form';
 import { DB } from 'utils/db';
 import { prettyDate } from 'utils/prettyDate';
 import * as z from 'zod';

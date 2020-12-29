@@ -1,9 +1,8 @@
 import { ProgressBar } from 'components/ProgressBar';
-import { ErrorMessage, Field, Form, Formik } from 'formik';
+import { ErrorMessage, Field } from 'formik';
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
-import { useRouter } from 'next/dist/client/router';
 import { useState } from 'react';
-import { createForm } from 'next-form';
+import { createForm } from 'next-ssr-form';
 import { prettyDate } from 'utils/prettyDate';
 import * as z from 'zod';
 import { DB } from '../utils/db';
@@ -24,19 +23,14 @@ type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 export default function Home(props: Props) {
   const [posts, setPosts] = useState(props.posts);
-  const [feedback, setFeedback] = useState(
-    createPostForm.getFeedbackFromProps(props)
-  );
+  const { Form, feedback } = createPostForm.useFormikScaffold(props);
 
   return (
     <>
-      <h1>
-        Formik <code>noscript</code>
-      </h1>
+      <h1>Formik scaffold</h1>
       <p>
-        Uses Formik to HTTP post to Next.js' special page endpoint (
-        <code>_next/data/[..]/[..].json</code>) then re-renders the{' '}
-        <code>posts</code> from the response
+        Like the <a href="/">first example</a> but scaffold a lot of code for
+        you
       </p>
       <p>This page works without JavaScript enabled!</p>
 
@@ -44,51 +38,20 @@ export default function Home(props: Props) {
       {posts.map(item => (
         <article key={item.id}>
           <strong>
-            From {item.from} at {prettyDate(item.createdAt)}:
+            From {item.from} at {prettyDate(item.createdAt)}
           </strong>
           <p className="message">{item.message}</p>
         </article>
       ))}
       <h3>Add post</h3>
 
-      <Formik
-        initialValues={createPostForm.getInitialValues(props)}
-        initialErrors={createPostForm.getInitialErrors(props)}
-        initialTouched={createPostForm.getInitialTouched(props)}
-        validate={createPostForm.formikValidator}
-        onSubmit={async (values, actions) => {
-          try {
-            setFeedback(null);
-            const { newProps } = await createPostForm.clientRequest({
-              values,
-              props,
-            });
-
-            const feedback = createPostForm.getFeedbackFromProps(newProps);
-            if (!feedback) {
-              throw new Error("Didn't receive feedback from props");
-            }
-            if (newProps.createPost.response?.success) {
-              console.log(
-                'added post with id',
-                newProps.createPost.response.data.id
-              );
-            }
-            setFeedback(feedback);
-            if (feedback.state === 'success') {
-              setPosts(newProps.posts); // refresh posts
-              actions.resetForm();
-            }
-          } catch (error) {
-            setFeedback({
-              state: 'error',
-              error,
-            });
-          }
+      <Form
+        onSuccess={({ newProps }) => {
+          setPosts(newProps.posts);
         }}
       >
         {({ isSubmitting }) => (
-          <Form method="post" action={props.createPost.endpoints.action}>
+          <>
             <ProgressBar loading={isSubmitting} />
             <p className="field">
               <label htmlFor="from">Name</label>
@@ -147,9 +110,9 @@ export default function Home(props: Props) {
               </>
             )}
             {isSubmitting && <span className="feedback">Loading...</span>}
-          </Form>
+          </>
         )}
-      </Formik>
+      </Form>
     </>
   );
 }
@@ -158,7 +121,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const createPostProps = await createPostForm.getPageProps({
     ctx,
     async mutation(input) {
-      if (Math.random() < 0.3) {
+      if (Math.random() < 0.5) {
         throw new Error('Emulating the mutation failing');
       }
       return DB.createPost(input);
