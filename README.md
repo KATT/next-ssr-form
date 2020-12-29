@@ -5,10 +5,9 @@
 ## About
 
 - 🔨   Uses Next.js' `getServerSideProps` to receive post data and provide helpers to the page to render the form
-- ♻️   E2E type safety! TypeScript types inferred between client & server
-- 🔐   Server-side data validation that's propagated to page props. Even your `mutation`'s return values are inferred.
-- ☁️   Allow you to write data straight to the db with confidence
-client <-> server with all the nice autocomplete jazz
+- 🎷   E2E type safety! TypeScript types inferred between client & server with all the nice autocomplete jazz
+- 🔐   Server-side data validation that's propagated to page props & your `mutation`s' return values are inferred.
+- ☁️   Allows you to write data straight to the db with confidence
 - 🤘   Your page will works without JS enabled (if you want it to)
 
 **(Peer) Dependencies:**
