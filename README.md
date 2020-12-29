@@ -1,41 +1,45 @@
-# `next-ssr-form`
+`next-ssr-form`
+---
 
-⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
-- Experimental library
-- Work in progress. 
-- Might be discontinued.
-⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
+> ⚠️ This is an experimental library and it might be discontinued
+
+- 🔨 Uses Next.js' `getServerSideProps` to both fetch and provide helpers to 
+- ♻️ E2E type safety! TypeScript types inferred between 
+- ☁️ Allow you to write data straight to the db with confidence
+client <-> server with all the nice autocomplete jazz
+- 🔐 Server-side data validation that's propagated to page props
+- 🤘 Works without JS enabled!
 
 
-## About
 
-- Uses Next.js' `getServerSideProps` to both fetch and provide helpers to write data straight to the db
-- No `/api`-routes used 😳
-- Server-side data validation that's propagated to page props
-- Works without JS enabled!
-- E2E type safety! TypeScript types inferred between client <-> server with all the nice autocomplete jazz
+- [`next-ssr-form`](#next-ssr-form)
+  - [(Peer) Dependencies](#peer-dependencies)
+- [Get started](#get-started)
+  - [0. Install](#0-install)
+  - [1. Add form to top of page](#1-add-form-to-top-of-page)
+  - [2. Add mutations to `getServerSideProps`](#2-add-mutations-to-getserversideprops)
+  - [3. Infer data types](#3-infer-data-types)
+  - [4. Use form](#4-use-form)
+- [Author](#author)
 
 ### (Peer) Dependencies
 
 - [zod](https://github.com/colinhacks/zod) for data validation
-- [Formik](https://github.com/formium/formik) as a form library
+- [Formik](https://github.com/formium/formik) as the form library
 
 
 ## Get started
 
-ℹ️ Easiest thing to do is to look at the pages in [`examples/typescript`](./examples/typescript).
+> ℹ️ Easiest thing to do is to look at the pages in [`examples/typescript`](./examples/typescript).
 
+### 0. Install
 ```bash
 yarn add next-ssr-form zod formik
 ```
 
-
-
-## How to use the "library"
+### 1. Add form to top of page
 
 In a Next.js `page/..`:
-
-### 1. Add form to top of page
 
 ```tsx
 export const createPostForm = createForm({
