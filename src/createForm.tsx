@@ -383,6 +383,6 @@ export function createForm<
     getInitialTouched,
     getFeedbackFromProps,
     formikValidator,
-    useFormikScaffold,
+    _unstable_useFormikScaffold: useFormikScaffold,
   };
 }
