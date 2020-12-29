@@ -86,9 +86,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.node_version}}-yarn-v4-
 
+      - name: Install/link lib
+        run: |
+          cd ../../
+          yarn --frozen-lockfile --silent
+          yarn link
+        env:
+          CI: true
+
       - name: Install
         run: |
-          yarn --frozen-lockfile --silent
+          yarn link next-ssr-form
+          yarn --silent
         env:
           CI: true
 
