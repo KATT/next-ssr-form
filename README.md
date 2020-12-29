@@ -5,12 +5,12 @@
 
 ## About
 
-- 🔨 Uses Next.js' `getServerSideProps` to both fetch and provide helpers to 
-- ♻️ E2E type safety! TypeScript types inferred between 
-- ☁️ Allow you to write data straight to the db with confidence
+- 🔨  Uses Next.js' `getServerSideProps` to both fetch and provide helpers to 
+- ♻️  E2E type safety! TypeScript types inferred between 
+- ☁️  Allow you to write data straight to the db with confidence
 client <-> server with all the nice autocomplete jazz
-- 🔐 Server-side data validation that's propagated to page props
-- 🤘 Works without JS enabled!
+- 🔐  Server-side data validation that's propagated to page props
+- 🤘  Works without JS enabled!
 
 **(Peer) Dependencies:**
 
