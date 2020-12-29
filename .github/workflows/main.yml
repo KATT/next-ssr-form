@@ -86,11 +86,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.node_version}}-yarn-v4-
 
-      - name: Install/build lib
-        run: |
-          cd ../../
-          yarn --frozen-lockfile --silent
-
       - name: Install
         run: |
           yarn --frozen-lockfile --silent
