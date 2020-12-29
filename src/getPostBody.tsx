@@ -1,7 +1,10 @@
 import { IncomingMessage } from 'http';
 import qs from 'querystring';
+import { MockIncomingMessage } from './createForm';
 
-export async function getPostBody(req: IncomingMessage) {
+export async function getPostBody<
+  TRequest extends MockIncomingMessage | IncomingMessage
+>(req: TRequest) {
   if (!process.browser) {
     const parse = (body: string) => {
       if (!body) {
@@ -18,7 +21,7 @@ export async function getPostBody(req: IncomingMessage) {
       return null;
     };
 
-    return new Promise<qs.ParsedUrlQuery | null>(resolve => {
+    return new Promise<qs.ParsedUrlQuery | null>(async resolve => {
       if (req.method !== 'POST') {
         resolve(null);
         return;

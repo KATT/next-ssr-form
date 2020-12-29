@@ -8,30 +8,41 @@ import {
   Formik,
   FormikErrors,
   FormikProps,
-  FormikTouched,
-  setIn,
+  FormikTouched
 } from 'formik';
-import React from 'react';
 import { IncomingMessage } from 'http';
 import { GetServerSidePropsContext } from 'next';
 import qs from 'querystring';
-import { ReactNode, useCallback, useState } from 'react';
+import React, { ReactNode, useCallback, useState } from 'react';
+import type * as Stream from 'stream';
 import url from 'url';
 import * as z from 'zod';
 import { ZodRawShape } from 'zod/lib/src/types/base';
 import { getPostBody } from './getPostBody';
-
 function throwServerOnlyError(message: string): never {
   throw new Error(`You have access server-only functionality (${message})`);
 }
 
-type Dict<T> = Record<string, T | undefined>;
+export interface MockIncomingMessage extends Stream.Readable {
+  method: string;
+  url: string;
+}
+export interface MockGetServerSidePropsContext {
+  req: MockIncomingMessage;
+  resolvedUrl: string;
+}
+
+type FieldError = {
+  path: (string | number)[],
+  message: string;
+}
+// type Dict<T> = Record<string, T | undefined>;
 type PostResponseError =
   | {
       type: 'ValidationError';
       message: string;
       stack?: string | undefined;
-      fieldErrors: Dict<string[]>;
+      fieldErrors: FieldError[];
     }
   | {
       type: 'MutationError';
@@ -102,7 +113,11 @@ export function createForm<
 
       if (!parsed.success) {
         const err = parsed.error;
-        const { fieldErrors } = err.flatten();
+        
+        const fieldErrors: FieldError[] = []
+        for (const {path,message} of err.errors) {
+          fieldErrors.push({path, message})
+        }
         return {
           success: false,
           input,
@@ -138,7 +153,7 @@ export function createForm<
     throwServerOnlyError('serverRequest()');
   }
 
-  async function getPostBodyForForm(req: IncomingMessage) {
+  async function getPostBodyForForm(req: IncomingMessage | MockIncomingMessage) {
     if (req.url?.endsWith(`?formId=${encodeURIComponent(formId)}`)) {
       return getPostBody(req);
     }
@@ -169,11 +184,11 @@ export function createForm<
 
     throwServerOnlyError('getEndpoints()');
   }
-  async function getPageProps<TMutationData>({
+  async function getPageProps<TMutationData, TContext extends (MockGetServerSidePropsContext | GetServerSidePropsContext)>({
     ctx,
     mutation,
   }: {
-    ctx: GetServerSidePropsContext;
+    ctx: TContext;
     mutation: (data: TValues) => Promise<TMutationData>;
   }) {
     if (!process.browser) {
@@ -227,6 +242,26 @@ export function createForm<
     return defaultValues;
   }
 
+  function fieldErrorsToFormikErrors(fieldErrors: FieldError[]) {
+    let errors: FormikErrors<TValues> = {}
+    for (const {path, message} of fieldErrors) {
+      let current: any = errors;
+      const parts = [...path]
+      const last = parts.pop()!
+      for (let index = 0; index < parts.length; index++) {
+        const part = parts[index]
+        const next = parts[index + 1]
+        if (current[part] === undefined) {
+          current[part] = typeof next === 'number' ? [] : {}
+        }
+        current = current[part]
+      }
+      current[last] = message
+    }
+
+    return errors;
+  }
+
   function getInitialErrors<
     TProps extends TPageProps<TMutationData>,
     TMutationData
@@ -236,15 +271,7 @@ export function createForm<
       return undefined;
     }
 
-    const errors: Dict<string> = {};
-    for (const [key, value] of Object.entries(fieldErrors)) {
-      if (!value) {
-        continue;
-      }
-      errors[key] = value.join(', ');
-    }
-
-    return errors as FormikErrors<TValues>;
+    return fieldErrorsToFormikErrors(fieldErrors)
   }
   function getFeedbackFromProps<
     TProps extends TPageProps<TMutationData>,
@@ -270,11 +297,8 @@ export function createForm<
     let errors: FormikErrors<TValues> = {};
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
-      for (const err of parsed.error.errors) {
-        errors = setIn(errors, err.path.join('.'), err.message);
-      }
+      errors = fieldErrorsToFormikErrors(parsed.error.errors)
     }
-    // console.log("errors", errors);
     return errors;
   }
 
@@ -290,7 +314,7 @@ export function createForm<
     const touched: Record<string, boolean> = {};
 
     for (const key in defaultValues) {
-      // not deep setting
+      // todo: not deep setting
       touched[key] = true;
     }
 
@@ -362,33 +386,4 @@ export function createForm<
     formikValidator,
     useFormikScaffold,
   };
-}
-
-export class MiniTest<
-  TSchema extends z.ZodObject<TSchemaShape>,
-  TSchemaShape extends ZodRawShape,
-  TFormId extends string
-> {
-  public schema: TSchema;
-  public defaultValues: z.infer<TSchema>;
-  public formId: TFormId;
-
-  constructor(opts: {
-    schema: TSchema;
-    defaultValues: z.infer<TSchema>;
-    /**
-     * A unique identifier for the form on the page, will used to identifiy it in the post receiver
-     */
-    formId: TFormId;
-  }) {
-    this.defaultValues = opts.defaultValues;
-    this.schema = opts.schema;
-    this.formId = opts.formId;
-  }
-
-  useHook() {
-    const [someState, setSomeState] = useState('test');
-
-    return [someState, setSomeState] as const;
-  }
 }
