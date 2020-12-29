@@ -1,5 +1,4 @@
 # `next-ssr-form` 
----
 
 > ⚠️ This is an experimental library and it might be discontinued
 
@@ -20,16 +19,16 @@ client <-> server with all the nice autocomplete jazz
 
 ## Table of contents
 
-- [# `next-ssr-form`](#-next-ssr-form)
-- [About](#about)
-- [Table of contents](#table-of-contents)
-- [Get started](#get-started)
-  - [0. Install](#0-install)
-  - [1. Add form to top of page](#1-add-form-to-top-of-page)
-  - [2. Add mutation to `getServerSideProps`](#2-add-mutation-to-getserversideprops)
-  - [3. Infer data types](#3-infer-data-types)
-  - [4. Use form](#4-use-form)
-- [Author](#author)
+- [`next-ssr-form`](#next-ssr-form)
+  - [About](#about)
+  - [Table of contents](#table-of-contents)
+  - [Get started](#get-started)
+    - [0. Install](#0-install)
+    - [1. Add form to top of page](#1-add-form-to-top-of-page)
+    - [2. Add mutation to `getServerSideProps`](#2-add-mutation-to-getserversideprops)
+    - [3. Infer data types](#3-infer-data-types)
+    - [4. Use form](#4-use-form)
+  - [Author](#author)
 ## Get started
 
 > ℹ️ Easiest thing to do is to look at the pages in [`examples/typescript`](./examples/typescript).
