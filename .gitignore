@@ -13,7 +13,7 @@
 /out/
 
 # production
-dists
+/build
 
 # misc
 .DS_Store
@@ -21,7 +21,6 @@ dists
 dist/
 package-lock.json
 
-#npm
 # debug
 npm-debug.log*
 yarn-debug.log*
