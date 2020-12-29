@@ -76,6 +76,3 @@ Your data usage is now typesafe!
 ## Author
 
 [@alexdotjs](https://twitter.com/alexdotjs)
-
-
-test deployment
