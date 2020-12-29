@@ -1,7 +1,9 @@
-`next-ssr-form`
+# `next-ssr-form` 
 ---
 
 > ⚠️ This is an experimental library and it might be discontinued
+
+## About
 
 - 🔨 Uses Next.js' `getServerSideProps` to both fetch and provide helpers to 
 - ♻️ E2E type safety! TypeScript types inferred between 
@@ -10,24 +12,24 @@ client <-> server with all the nice autocomplete jazz
 - 🔐 Server-side data validation that's propagated to page props
 - 🤘 Works without JS enabled!
 
-
-
-- [`next-ssr-form`](#next-ssr-form)
-  - [(Peer) Dependencies](#peer-dependencies)
-- [Get started](#get-started)
-  - [0. Install](#0-install)
-  - [1. Add form to top of page](#1-add-form-to-top-of-page)
-  - [2. Add mutations to `getServerSideProps`](#2-add-mutations-to-getserversideprops)
-  - [3. Infer data types](#3-infer-data-types)
-  - [4. Use form](#4-use-form)
-- [Author](#author)
-
-### (Peer) Dependencies
+**(Peer) Dependencies:**
 
 - [zod](https://github.com/colinhacks/zod) for data validation
 - [Formik](https://github.com/formium/formik) as the form library
 
 
+## Table of contents
+
+- [# `next-ssr-form`](#-next-ssr-form)
+- [About](#about)
+- [Table of contents](#table-of-contents)
+- [Get started](#get-started)
+  - [0. Install](#0-install)
+  - [1. Add form to top of page](#1-add-form-to-top-of-page)
+  - [2. Add mutation to `getServerSideProps`](#2-add-mutation-to-getserversideprops)
+  - [3. Infer data types](#3-infer-data-types)
+  - [4. Use form](#4-use-form)
+- [Author](#author)
 ## Get started
 
 > ℹ️ Easiest thing to do is to look at the pages in [`examples/typescript`](./examples/typescript).
@@ -55,7 +57,7 @@ export const createPostForm = createForm({
 });
 ```
 
-### 2. Add mutations to `getServerSideProps`
+### 2. Add mutation to `getServerSideProps`
 
 
 ```tsx
