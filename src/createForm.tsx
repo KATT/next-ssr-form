@@ -392,13 +392,3 @@ export class MiniTest<
     return [someState, setSomeState] as const;
   }
 }
-
-export function useTestHook<
-  TSchema extends z.ZodObject<TSchemaShape>,
-  TSchemaShape extends ZodRawShape,
-  TFormId extends string
->(instance: MiniTest<TSchema, TSchemaShape, TFormId>) {
-  const [someState, setSomeState] = useState(instance.defaultValues);
-
-  return [someState, setSomeState] as const;
-}
