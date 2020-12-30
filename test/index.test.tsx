@@ -180,6 +180,10 @@ describe('getPageProps()', () => {
           },
         ]
       `);
+
+      expect(form.getInitialErrors(pageProps)).toMatchInlineSnapshot(
+        `Object {}`
+      );
     });
     test('field error', async () => {
       const ctx = mockCtx({
