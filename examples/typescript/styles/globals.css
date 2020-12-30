@@ -113,9 +113,9 @@ hr {
 .rating {
   display: inline-block;
   position: relative;
-  height: 50px;
-  line-height: 50px;
-  font-size: 50px;
+  height: 20px;
+  line-height: 20px;
+  font-size: 20px;
 }
 
 .rating label {

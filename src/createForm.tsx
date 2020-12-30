@@ -26,6 +26,12 @@ export interface MockGetServerSidePropsContext {
   req: MockIncomingMessage;
   resolvedUrl: string;
 }
+type Primitive = string | number | boolean;
+type DefaultValues<T> = {
+  [P in keyof T]: T[P] extends Primitive
+    ? DefaultValues<T[P]> | T[P] | '' // allows empty string always
+    : DefaultValues<T[P]>;
+};
 
 type FieldError = {
   path: (string | number)[];
@@ -83,7 +89,7 @@ export function createForm<
   formId,
 }: {
   schema: TSchema;
-  defaultValues: z.infer<TSchema>;
+  defaultValues: DefaultValues<z.infer<TSchema>>;
   /**
    * A unique identifier for the form on the page, will used to identifiy it in the post receiver
    */
@@ -240,7 +246,7 @@ export function createForm<
     if (res?.error && res.input) {
       return res.input;
     }
-    return defaultValues;
+    return defaultValues as TValues;
   }
 
   function fieldErrorsToFormikErrors(fieldErrors: FieldError[]) {

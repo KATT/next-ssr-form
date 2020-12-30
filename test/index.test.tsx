@@ -622,3 +622,40 @@ describe('useForm hook', () => {
     });
   });
 });
+
+describe('DefaultValues<T> test', () => {
+  test('literal string - empty string is allowed', () => {
+    createForm({
+      schema: z.object({
+        rating: z.enum(['1', '2', '3', '4', '5']),
+      }),
+      defaultValues: {
+        rating: '',
+      },
+      formId: 'form',
+    });
+  });
+  test('number - empty string is allowed', () => {
+    createForm({
+      schema: z.object({
+        rating: z.union([z.literal(1), z.literal(2)]),
+      }),
+      defaultValues: {
+        rating: '',
+      },
+      formId: 'form',
+    });
+  });
+
+  test('bool - empty string is allowed', () => {
+    createForm({
+      schema: z.object({
+        ok: z.boolean(),
+      }),
+      defaultValues: {
+        ok: '',
+      },
+      formId: 'form',
+    });
+  });
+});

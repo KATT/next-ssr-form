@@ -22,7 +22,7 @@ export const createPostForm = createForm({
       name: '',
       twitter: '',
     },
-    rating: '3',
+    rating: '',
   },
   formId: 'createPost',
 });
@@ -38,12 +38,12 @@ function RatingInput({
   min?: number;
   max?: number;
 }) {
-  const inputs = new Array(max - min + 1).map(index => {
+  const inputs = new Array(max - min + 1).fill(null).map((_, index) => {
     const num = min + index;
     return (
       <label key={num}>
         <Field type="radio" name={name} value={String(num)} />
-        {new Array(num).map((_, index) => (
+        {new Array(num).fill(null).map((_, index) => (
           <span key={index} className="icon">
             ★
           </span>
@@ -71,7 +71,17 @@ export default function Home(props: Props) {
       {posts.map(item => (
         <article key={item.id}>
           <strong>
-            From {item.from} at {prettyDate(item.createdAt)}
+            From{' '}
+            {item.twitter ? (
+              <a
+                href={`https://twitter.com/${encodeURIComponent(item.twitter)}`}
+              >
+                {item.from}
+              </a>
+            ) : (
+              item.from
+            )}{' '}
+            at {prettyDate(item.createdAt)}
           </strong>
           <p className="message">{item.message}</p>
         </article>
@@ -124,9 +134,14 @@ export default function Home(props: Props) {
                 className="field__error"
               />
             </p>
+
+            <RatingInput name="rating" />
+            <br />
+            <br />
             <button type="submit" disabled={isSubmitting}>
               Submit
             </button>
+            {isSubmitting && <span className="feedback">Loading...</span>}
 
             <br />
             {feedback?.state === 'success' && (
@@ -153,7 +168,6 @@ export default function Home(props: Props) {
                 </span>
               </>
             )}
-            {isSubmitting && <span className="feedback">Loading...</span>}
           </>
         )}
       </Form>

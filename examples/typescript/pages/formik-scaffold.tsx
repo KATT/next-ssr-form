@@ -13,7 +13,7 @@ export const createPostForm = createForm({
     message: z.string().min(4),
   }),
   defaultValues: {
-    message: 'asdadasda',
+    message: '',
     from: '',
   },
   formId: 'createPost',
