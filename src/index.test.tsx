@@ -55,7 +55,6 @@ function mockFetchOnce({ form, mutation }: { form: any; mutation: any }) {
         },
       });
       const res = await form.getPageProps({ ctx: postCtx, mutation });
-      // console.log('res', res);
       return {
         json() {
           return {

@@ -13,14 +13,16 @@
   },
   "scripts": {
     "dev": "yarn start",
-    "start": "tsdx watch",
-    "build": "tsdx build",
+    "start": "tsdx watch --tsconfig ./tsconfig.tsdx.json",
+    "build": "tsdx build --tsconfig ./tsconfig.tsdx.json",
     "test": "tsdx test",
-    "lint": "tsdx lint",
-    "prepare": "tsdx build",
+    "lint": "tsdx lint --tsconfig ./tsconfig.tsdx.json",
+    "prepare": "tsdx build --tsconfig ./tsconfig.tsdx.json",
     "size": "size-limit",
     "analyze": "size-limit --why",
-    "postpublish": "cd examples/typescript && yarn add next-ssr-form@next && git add ../../."
+    "postpublish": "cd examples/typescript && yarn add next-ssr-form@next && git add ../../.",
+    "dev-symlink": "cd examples/typescript/node_modules/next-ssr-form && rm -rf src dist && ln -s ../../../../src src && ln -s ../../../../dist dist",
+    "dev-next": "next dev --tsconfig tsconfig.tsdx.json"
   },
   "husky": {
     "hooks": {
@@ -28,6 +30,11 @@
     }
   },
   "jest": {
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.tsdx.json"
+      }
+    },
     "testPathIgnorePatterns": [
       "/examples/"
     ]

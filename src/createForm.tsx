@@ -201,7 +201,6 @@ export function createForm<
       const body = await getPostBodyForForm(ctx.req);
 
       const endpoints = getEndpoints(ctx.resolvedUrl);
-      // console.log({ body, endpoints });
 
       const response = await performMutation<TMutationData>(
         body as any,
@@ -251,23 +250,23 @@ export function createForm<
 
   function fieldErrorsToFormikErrors(fieldErrors: FieldError[]) {
     let errors: FormikErrors<TValues> = {};
-    // console.log('fieldErrors', fieldErrors);
+
     for (const { path, message } of fieldErrors) {
       let current: any = errors;
-      let parts = [...path];
-      const lastPart = parts.pop();
-      if (lastPart === undefined) {
-        continue;
-      }
-      for (let index = 0; index < parts.length; index++) {
-        const part = parts[index];
-        const next = parts[index + 1];
+
+      for (let index = 0; index < path.length; index++) {
+        const part = path[index];
+        const next = path[index + 1];
         if (current[part] === undefined) {
           current[part] = typeof next === 'number' ? [] : {};
         }
-        current = current[part];
+
+        if (next === undefined) {
+          current[part] = message;
+        } else {
+          current = current[part];
+        }
       }
-      current[lastPart] = message;
     }
 
     return errors;
@@ -306,8 +305,6 @@ export function createForm<
   }
   function formikValidator(values: TValues) {
     let errors: FormikErrors<TValues> = {};
-    // const unflattened = unflattenObject(values);
-    // console.log('validate', { unflattened, values });
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
       errors = fieldErrorsToFormikErrors(parsed.error.errors);
