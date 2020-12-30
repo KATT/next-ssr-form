@@ -19,6 +19,9 @@ export const createPostForm = createForm({
         })
         .optional(),
     }),
+    rating: z.enum(['', '1', '2', '3', '4', '5']).refine(val => val !== '', {
+      message: 'You have to pick a rating',
+    }),
   }),
   defaultValues: {
     message: '',
@@ -26,6 +29,7 @@ export const createPostForm = createForm({
       name: '',
       twitter: '',
     },
+    rating: '',
   },
   formId: 'createPost',
 });
@@ -118,14 +122,14 @@ export default function Home(props: Props) {
               />
             </p>
             <p className="field">
-              <label htmlFor="from.user">
-                Twitter handle (<code>from.name</code>)
+              <label htmlFor="from.twitter">
+                Twitter handle (<code>from.twitter</code>)
               </label>
               <br />
-              <Field type="text" name="from.user" disabled={isSubmitting} />
+              <Field type="text" name="from.twitter" disabled={isSubmitting} />
               <br />
               <ErrorMessage
-                name="from.user"
+                name="from.twitter"
                 component="span"
                 className="field__error"
               />

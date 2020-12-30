@@ -727,3 +727,42 @@ describe('getInitialValues()', () => {
     `);
   });
 });
+
+describe('error handling', () => {
+  test('multiple errors on the same field', async () => {
+    const form = createForm({
+      schema: z.object({
+        from: z.object({
+          twitter: z
+            .string()
+            .regex(/^[a-zA-Z0-9_]{1,15}$/, {
+              message: 'Not a valid twitter handle',
+            })
+            .refine(val => val === 'alexdotjs', {
+              message: 'has to be alexdotjs',
+            })
+            .optional(),
+        }),
+      }),
+      defaultValues: {
+        from: {
+          twitter: '',
+        },
+      },
+      formId: 'form',
+    });
+    expect(
+      form.formikValidator({
+        from: {
+          twitter: 'nope',
+        },
+      })
+    ).toMatchInlineSnapshot(`
+      Object {
+        "from": Object {
+          "twitter": "has to be alexdotjs",
+        },
+      }
+    `);
+  });
+});

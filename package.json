@@ -1,6 +1,6 @@
 {
   "name": "next-ssr-form",
-  "version": "1.0.0-5",
+  "version": "1.0.0-6",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -22,7 +22,7 @@
     "analyze": "size-limit --why",
     "postpublish": "cd examples/typescript && yarn add next-ssr-form@next && git add ../../.",
     "dev-symlink": "cd examples/typescript/node_modules/next-ssr-form && rm -rf src dist && ln -s ../../../../src src && ln -s ../../../../dist dist",
-    "dev-next": "next dev --tsconfig tsconfig.tsdx.json"
+    "dev-next": "next dev"
   },
   "husky": {
     "hooks": {
