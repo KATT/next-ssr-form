@@ -3344,10 +3344,10 @@ neo-async@^2.5.0, neo-async@^2.6.1, neo-async@^2.6.2:
   resolved "https://registry.npmjs.org/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
-next-ssr-form@^1.0.0-1:
-  version "1.0.0-1"
-  resolved "https://registry.npmjs.org/next-ssr-form/-/next-ssr-form-1.0.0-1.tgz#207bbb5ae61fa5876cdae1ae8fe0ce411c990d04"
-  integrity sha512-B+UsrJes8Fc6BBpVabx4tccYNb7ItbXk+mqR43vWrCVtIXLtb6Z08GWaHTppGLA7raOls2tJ+a5YMSxfn+86RA==
+next-ssr-form@^1.0.0-2:
+  version "1.0.0-2"
+  resolved "https://registry.npmjs.org/next-ssr-form/-/next-ssr-form-1.0.0-2.tgz#46f710d808e71722e51b93fac234131fa76d2fb2"
+  integrity sha512-mzzdwhvxnNQd96TJKIqizzc61n695XAEWjq6y4Atm/rJspF7a3wz1OcoRzCeS46ImRC4z/AzqVwpW2y5VAvAOw==
 
 next-tick@~1.0.0:
   version "1.0.0"

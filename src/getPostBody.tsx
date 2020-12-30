@@ -22,7 +22,7 @@ export async function getPostBody<
     };
 
     return new Promise<qs.ParsedUrlQuery | null>(async resolve => {
-      if (req.method !== 'POST') {
+      if (req.method?.toUpperCase() !== 'POST') {
         resolve(null);
         return;
       }

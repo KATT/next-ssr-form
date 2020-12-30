@@ -13,6 +13,7 @@ import url from 'url';
 import * as z from 'zod';
 import { ZodRawShape } from 'zod/lib/src/types/base';
 import { getPostBody } from './getPostBody';
+import fetch from 'node-fetch';
 function throwServerOnlyError(message: string): never {
   throw new Error(`You have access server-only functionality (${message})`);
 }
@@ -194,6 +195,7 @@ export function createForm<
       const body = await getPostBodyForForm(ctx.req);
 
       const endpoints = getEndpoints(ctx.resolvedUrl);
+      // console.log({ body, endpoints });
 
       const response = await performMutation<TMutationData>(
         body as any,
@@ -245,7 +247,7 @@ export function createForm<
     let errors: FormikErrors<TValues> = {};
     for (const { path, message } of fieldErrors) {
       let current: any = errors;
-      const parts = [...path];
+      let parts = [...path];
       const lastPart = parts.pop();
       if (lastPart === undefined) {
         continue;
