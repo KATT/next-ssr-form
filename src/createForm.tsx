@@ -245,11 +245,8 @@ export function createForm<
     let errors: FormikErrors<TValues> = {};
     for (const { path, message } of fieldErrors) {
       let current: any = errors;
-      if (path.length === 0) {
-        continue;
-      }
       const parts = [...path];
-      const lastPart = parts.pop()!;
+      const lastPart = parts.pop();
       if (lastPart === undefined) {
         continue;
       }

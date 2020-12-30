@@ -260,7 +260,85 @@ describe('getPageProps()', () => {
   });
 });
 
-describe('nested form', () => {
+describe('simple nesting', () => {
+  const form = createForm({
+    schema: z.object({
+      message: z.string(),
+      user: z.object({
+        name: z.string().min(2),
+        twitter: z.string().optional(),
+      }),
+    }),
+    defaultValues: {
+      message: '',
+      user: {
+        name: '',
+        twitter: '',
+      },
+    },
+    formId: 'form',
+  });
+
+  test('invalid', async () => {
+    const ctx = mockCtx({
+      req: {
+        method: 'POST',
+        body: {
+          message: '',
+          user: {
+            name: '',
+            twitter: 'alexdotjs',
+          },
+        },
+      },
+      resolvedUrl: `/?formId=${form.formId}`,
+    });
+    const pageProps = await form.getPageProps({
+      ctx,
+      async mutation(input) {
+        return {
+          id: 'asdf',
+          ...input,
+        };
+      },
+    });
+
+    expect(pageProps.form.response?.success).toBe(false);
+    expect(pageProps.form.response?.error).toMatchInlineSnapshot(`
+      Object {
+        "fieldErrors": Array [
+          Object {
+            "message": "Should be at least 2 characters",
+            "path": Array [
+              "user",
+              "name",
+            ],
+          },
+        ],
+        "message": "1 validation issue(s)
+
+        Issue #0: too_small at user.name
+        Should be at least 2 characters
+      ",
+        "stack": undefined,
+        "type": "ValidationError",
+      }
+    `);
+    expect(form.getInitialErrors(pageProps)).toMatchInlineSnapshot(`
+      Object {
+        "user": Object {
+          "name": "Should be at least 2 characters",
+        },
+      }
+    `);
+    const initialErrors = form.getInitialErrors(pageProps);
+    const validatorErrors = form.formikValidator(
+      pageProps.form.response?.input!
+    );
+    expect(initialErrors).toEqual(validatorErrors);
+  });
+});
+describe('deep nesting', () => {
   const form = createForm({
     schema: z.object({
       deep: z.object({
