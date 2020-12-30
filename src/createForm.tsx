@@ -245,8 +245,14 @@ export function createForm<
     let errors: FormikErrors<TValues> = {};
     for (const { path, message } of fieldErrors) {
       let current: any = errors;
+      if (path.length === 0) {
+        continue;
+      }
       const parts = [...path];
-      const last = parts.pop()!;
+      const lastPart = parts.pop()!;
+      if (lastPart === undefined) {
+        continue;
+      }
       for (let index = 0; index < parts.length; index++) {
         const part = parts[index];
         const next = parts[index + 1];
@@ -255,7 +261,7 @@ export function createForm<
         }
         current = current[part];
       }
-      current[last] = message;
+      current[lastPart] = message;
     }
 
     return errors;
