@@ -6,6 +6,7 @@
 import { Form, Formik, FormikErrors, FormikProps, FormikTouched } from 'formik';
 import { IncomingMessage } from 'http';
 import { GetServerSidePropsContext } from 'next';
+import fetch from 'node-fetch';
 import qs from 'querystring';
 import React, { ReactNode, useCallback, useState } from 'react';
 import * as Stream from 'stream';
@@ -25,6 +26,12 @@ export interface MockGetServerSidePropsContext {
   req: MockIncomingMessage;
   resolvedUrl: string;
 }
+type Primitive = string | number | boolean;
+type DefaultValues<T> = {
+  [P in keyof T]: T[P] extends Primitive
+    ? DefaultValues<T[P]> | T[P] | '' // allows empty string always
+    : DefaultValues<T[P]>;
+};
 
 type FieldError = {
   path: (string | number)[];
@@ -82,7 +89,7 @@ export function createForm<
   formId,
 }: {
   schema: TSchema;
-  defaultValues: z.infer<TSchema>;
+  defaultValues: DefaultValues<z.infer<TSchema>>;
   /**
    * A unique identifier for the form on the page, will used to identifiy it in the post receiver
    */
@@ -194,6 +201,7 @@ export function createForm<
       const body = await getPostBodyForForm(ctx.req);
 
       const endpoints = getEndpoints(ctx.resolvedUrl);
+      // console.log({ body, endpoints });
 
       const response = await performMutation<TMutationData>(
         body as any,
@@ -236,20 +244,18 @@ export function createForm<
   >(props: TProps): TValues {
     const res = props[formId].response;
     if (res?.error && res.input) {
-      return res.input;
+      return res.input as any;
     }
-    return defaultValues;
+    return defaultValues as any;
   }
 
   function fieldErrorsToFormikErrors(fieldErrors: FieldError[]) {
     let errors: FormikErrors<TValues> = {};
+    // console.log('fieldErrors', fieldErrors);
     for (const { path, message } of fieldErrors) {
       let current: any = errors;
-      if (path.length === 0) {
-        continue;
-      }
-      const parts = [...path];
-      const lastPart = parts.pop()!;
+      let parts = [...path];
+      const lastPart = parts.pop();
       if (lastPart === undefined) {
         continue;
       }
@@ -300,6 +306,8 @@ export function createForm<
   }
   function formikValidator(values: TValues) {
     let errors: FormikErrors<TValues> = {};
+    // const unflattened = unflattenObject(values);
+    // console.log('validate', { unflattened, values });
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
       errors = fieldErrorsToFormikErrors(parsed.error.errors);

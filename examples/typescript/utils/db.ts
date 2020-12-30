@@ -2,15 +2,32 @@ import { v4 } from 'uuid';
 import { assertOnServer } from 'next-ssr-form';
 assertOnServer('db.ts');
 
+type Rating = '1' | '2' | '3' | '4' | '5';
+type DBUser = {
+  id: string;
+  message: string;
+  from: string;
+  createdAt: string;
+  twitter?: undefined | string;
+  rating?: undefined | Rating;
+};
+
 const db = {
   posts: [
     {
       id: '00000000-0000-0000-0000-000000000001',
       message: 'hello',
       from: 'alexdotjs',
+      twitter: 'alexdotjs',
       createdAt: new Date(2020, 12, 26).toJSON(),
     },
-  ],
+    {
+      id: '00000000-0000-0000-0000-000000000002',
+      message: 'world',
+      from: 'alexdotjs',
+      createdAt: new Date(2020, 12, 26).toJSON(),
+    },
+  ] as DBUser[],
 };
 
 const SLACK_WEBHOOK = process.env.SLACK_WEBHOOK;
