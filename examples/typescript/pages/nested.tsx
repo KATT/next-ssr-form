@@ -19,9 +19,7 @@ export const createPostForm = createForm({
         })
         .optional(),
     }),
-    rating: z.enum(['', '1', '2', '3', '4', '5']).refine(val => val !== '', {
-      message: 'You have to pick a rating',
-    }),
+    rating: z.enum(['1', '2', '3', '4', '5']),
   }),
   defaultValues: {
     message: '',
