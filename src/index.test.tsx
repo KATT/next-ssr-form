@@ -1,10 +1,17 @@
+import '@testing-library/jest-dom';
+import { fireEvent, render, waitFor } from '@testing-library/react';
+import { ErrorMessage, Field } from 'formik';
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
+import fetch from 'node-fetch';
+import * as React from 'react';
 import * as Stream from 'stream';
 import * as z from 'zod';
 import {
   MockGetServerSidePropsContext,
   MockIncomingMessage,
-} from '../src/createForm';
-import { createForm } from '../src/index';
+} from './createForm';
+import { createForm } from './index';
+jest.mock('node-fetch');
 type HTTPMethods = 'POST' | 'GET' | 'OPTIONS' | 'PUT' | 'PATCH';
 
 interface MockRequestOptions<TBody> {
@@ -21,7 +28,8 @@ class MockIncomingRequest<TBody> extends Stream.Duplex
   constructor(opts: MockRequestOptions<TBody>) {
     super();
 
-    this.body = opts.body;
+    this.body =
+      typeof opts.body === 'string' ? JSON.parse(opts.body) : opts.body;
     this.method = opts.method;
     this.url = opts.url;
   }
@@ -35,8 +43,30 @@ class MockIncomingRequest<TBody> extends Stream.Duplex
     });
   }
 }
+function mockFetchOnce({ form, mutation }: { form: any; mutation: any }) {
+  ((fetch as any) as jest.Mock<any>).mockImplementationOnce(
+    async (path, { body, method }) => {
+      const postCtx = mockCtx({
+        resolvedUrl: path,
+        req: {
+          method,
+          body,
+          url: `http://localhost:3000${path}`,
+        },
+      });
+      const res = await form.getPageProps({ ctx: postCtx, mutation });
+      return {
+        json() {
+          return {
+            pageProps: res,
+          };
+        },
+      };
+    }
+  );
+}
 
-function mockCtx<TBody>(
+function mockCtx<TBody extends Object | string>(
   opts: {
     req?: Partial<MockRequestOptions<TBody>>;
     resolvedUrl?: string;
@@ -260,7 +290,7 @@ describe('getPageProps()', () => {
   });
 });
 
-describe('nested form', () => {
+describe('deep nesting', () => {
   const form = createForm({
     schema: z.object({
       deep: z.object({
@@ -428,5 +458,311 @@ describe('nested form', () => {
       pageProps.form.response?.input!
     );
     expect(initialErrors).toEqual(validatorErrors);
+  });
+});
+
+describe('useForm hook', () => {
+  const form = createForm({
+    schema: z.object({
+      message: z.string(),
+      user: z.object({
+        name: z.string().min(2),
+        twitter: z.string().optional(),
+      }),
+    }),
+    defaultValues: {
+      message: 'defaultMessage',
+      user: {
+        name: '',
+        twitter: '',
+      },
+    },
+    formId: 'form',
+  });
+  test('simple render', async () => {
+    const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+      const formProps = await form.getPageProps({
+        ctx,
+        async mutation() {},
+      });
+      return {
+        props: {
+          ...formProps,
+        },
+      };
+    };
+
+    const ctx = mockCtx({}) as GetServerSidePropsContext;
+    type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
+
+    function MyPage(props: Props) {
+      const { Form } = form._unstable_useFormikScaffold(props);
+      return <Form>{() => <>{props.form.endpoints.action}</>}</Form>;
+    }
+
+    const ssr = await getServerSideProps(ctx);
+    await waitFor(() => {
+      render(<MyPage {...ssr.props} />);
+    });
+  });
+
+  test('interactions', async () => {
+    const ctx = mockCtx({});
+
+    const mutation = jest.fn(async function mutationMock<T>(arg: T) {
+      return arg;
+    });
+    const formProps = await form.getPageProps({
+      ctx,
+      mutation,
+    });
+
+    function FieldAndError({ name }: { name: string }) {
+      return (
+        <label>
+          <Field type="text" name={name} data-testid={name} />
+
+          <ErrorMessage name={name} />
+        </label>
+      );
+    }
+    const ERROR_MSG = 'SOMETHING_WENT_WRONG';
+    const SUCCESS_MSG = 'YAY_SUCCEEDED';
+    function MyPage(props: typeof formProps) {
+      const { Form, feedback } = form._unstable_useFormikScaffold(props);
+      return (
+        <Form>
+          {({ isSubmitting }) => (
+            <>
+              <FieldAndError name="message" />
+              <FieldAndError name="user.name" />
+              <FieldAndError name="user.twitter" />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                data-testid="submit"
+              >
+                Submit
+              </button>
+              {feedback?.state === 'error' && (
+                <>
+                  {ERROR_MSG}
+                  <pre>
+                    {JSON.stringify(
+                      {
+                        stack: feedback.error.stack,
+                        message: feedback.error.message,
+                      },
+                      null,
+                      4
+                    )}
+                  </pre>
+                </>
+              )}
+              {feedback?.state === 'success' && SUCCESS_MSG}
+            </>
+          )}
+        </Form>
+      );
+    }
+
+    const utils = render(<MyPage {...formProps} />);
+    mockFetchOnce({ form, mutation });
+    function getInput(name: string) {
+      const el = utils.getByTestId(name);
+      return el as HTMLInputElement;
+    }
+
+    function setInput(name: string, value: string) {
+      const input = getInput(name);
+      fireEvent.change(input, { target: { value } });
+    }
+    await waitFor(async () => {
+      // check defaults
+      const input = getInput('message');
+      expect(input.value).toBe('defaultMessage');
+    });
+    setInput('message', 'test');
+    setInput('user.name', 'name');
+    setInput('user.twitter', 'handle');
+
+    utils.getByTestId('submit').click();
+
+    await waitFor(async () => {
+      // expect success
+      expect(utils.getByText(SUCCESS_MSG)).toBeInTheDocument();
+      // expect reset
+      const input = getInput('message');
+      expect(input.value).toBe('defaultMessage');
+    });
+
+    // // submit again with other values (failing)
+    {
+      const input = getInput('user.name');
+      fireEvent.change(input, { target: { value: 'a' } });
+      utils.getByTestId('submit').click();
+    }
+
+    // fill in properly but fail mutation
+    mockFetchOnce({
+      form,
+      mutation: async function() {
+        throw new Error('__ERROR__');
+      },
+    });
+    setInput('user.name', ' alex');
+    setInput('message', ' hello there');
+
+    utils.getByTestId('submit').click();
+    await waitFor(async () => {
+      expect(
+        utils.getByText('Should be at least 2 characters')
+      ).toBeInTheDocument();
+    });
+  });
+});
+
+describe('DefaultValues<T> test', () => {
+  test('literal string - empty string is allowed', () => {
+    createForm({
+      schema: z.object({
+        rating: z.enum(['1', '2', '3', '4', '5']),
+      }),
+      defaultValues: {
+        rating: '',
+      },
+      formId: 'form',
+    });
+  });
+  test('number - empty string is allowed', () => {
+    createForm({
+      schema: z.object({
+        rating: z.union([z.literal(1), z.literal(2)]),
+      }),
+      defaultValues: {
+        rating: '',
+      },
+      formId: 'form',
+    });
+  });
+});
+describe('getInitialValues()', () => {
+  test('simple', async () => {
+    const form = createForm({
+      schema: z.object({
+        set: z.string(),
+        notSet: z.string(),
+      }),
+      defaultValues: {
+        set: 'defaultValue',
+        notSet: '',
+      },
+      formId: 'form',
+    });
+    const props = await form.getPageProps({
+      ctx: mockCtx({}),
+      async mutation() {},
+    });
+    const defaultValues = form.getInitialValues(props);
+    expect(defaultValues).toMatchInlineSnapshot(`
+      Object {
+        "notSet": "",
+        "set": "defaultValue",
+      }
+    `);
+  });
+
+  test('simple', async () => {
+    const form = createForm({
+      schema: z.object({
+        set: z.string(),
+        notSet: z.string(),
+      }),
+      defaultValues: {
+        set: 'defaultValue',
+        notSet: '',
+      },
+      formId: 'form',
+    });
+    const props = await form.getPageProps({
+      ctx: mockCtx({}),
+      async mutation() {},
+    });
+    const defaultValues = form.getInitialValues(props);
+    expect(defaultValues).toMatchInlineSnapshot(`
+      Object {
+        "notSet": "",
+        "set": "defaultValue",
+      }
+    `);
+  });
+  test('nested', async () => {
+    const form = createForm({
+      schema: z.object({
+        arr: z.array(z.string()),
+        obj: z.object({
+          str: z.string(),
+        }),
+      }),
+      defaultValues: {
+        arr: [],
+        obj: {
+          str: '',
+        },
+      },
+      formId: 'form',
+    });
+    const props = await form.getPageProps({
+      ctx: mockCtx({}),
+      async mutation() {},
+    });
+    const defaultValues = form.getInitialValues(props);
+    expect(defaultValues).toMatchInlineSnapshot(`
+      Object {
+        "arr": Array [],
+        "obj": Object {
+          "str": "",
+        },
+      }
+    `);
+  });
+});
+
+describe('error handling', () => {
+  test('multiple errors on the same field', async () => {
+    const form = createForm({
+      schema: z.object({
+        from: z.object({
+          twitter: z
+            .string()
+            .regex(/^[a-zA-Z0-9_]{1,15}$/, {
+              message: 'Not a valid twitter handle',
+            })
+            .refine(val => val === 'alexdotjs', {
+              message: 'has to be alexdotjs',
+            })
+            .optional(),
+        }),
+      }),
+      defaultValues: {
+        from: {
+          twitter: '',
+        },
+      },
+      formId: 'form',
+    });
+    expect(
+      form.formikValidator({
+        from: {
+          twitter: 'nope',
+        },
+      })
+    ).toMatchInlineSnapshot(`
+      Object {
+        "from": Object {
+          "twitter": "has to be alexdotjs",
+        },
+      }
+    `);
   });
 });

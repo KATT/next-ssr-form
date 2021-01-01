@@ -1,17 +1,14 @@
-/**
- * ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
- * This is unmaintainable spaghetti right now
- * ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
- */
 import { Form, Formik, FormikErrors, FormikProps, FormikTouched } from 'formik';
 import { IncomingMessage } from 'http';
 import { GetServerSidePropsContext } from 'next';
+import fetch from 'node-fetch';
 import qs from 'querystring';
 import React, { ReactNode, useCallback, useState } from 'react';
 import * as Stream from 'stream';
 import url from 'url';
 import * as z from 'zod';
 import { ZodRawShape } from 'zod/lib/src/types/base';
+import { replaceLeafNodes, unflattenObject } from './objectUtils';
 import { getPostBody } from './getPostBody';
 function throwServerOnlyError(message: string): never {
   throw new Error(`You have access server-only functionality (${message})`);
@@ -25,6 +22,12 @@ export interface MockGetServerSidePropsContext {
   req: MockIncomingMessage;
   resolvedUrl: string;
 }
+type Primitive = string | number | boolean;
+type DefaultValues<T> = {
+  [P in keyof T]: T[P] extends Primitive
+    ? DefaultValues<T[P]> | T[P] | '' // allows empty string always
+    : DefaultValues<T[P]>;
+};
 
 type FieldError = {
   path: (string | number)[];
@@ -82,7 +85,7 @@ export function createForm<
   formId,
 }: {
   schema: TSchema;
-  defaultValues: z.infer<TSchema>;
+  defaultValues: DefaultValues<z.infer<TSchema>>;
   /**
    * A unique identifier for the form on the page, will used to identifiy it in the post receiver
    */
@@ -96,13 +99,14 @@ export function createForm<
   type TPostResponse<TMutationData> = PostResponse<TMutationData, TValues>;
 
   async function performMutation<TMutationData>(
-    input: TValues,
+    _input: TValues,
     mutation: (data: TValues) => Promise<TMutationData>
   ): Promise<TPostResponse<TMutationData> | null> {
     if (!process.browser) {
-      if (!input) {
+      if (!_input) {
         return null;
       }
+      const input: TValues = unflattenObject(_input); // http posts doesn't give us structured json
       const parsed = schema.safeParse(input);
 
       if (!parsed.success) {
@@ -128,13 +132,13 @@ export function createForm<
         const data = await mutation(parsed.data);
         return {
           input,
-          success: true as const,
+          success: true,
           data,
         };
       } catch (err) {
         return {
           input,
-          success: false as const,
+          success: false,
           error: {
             type: 'MutationError',
             message: err.message,
@@ -236,32 +240,30 @@ export function createForm<
   >(props: TProps): TValues {
     const res = props[formId].response;
     if (res?.error && res.input) {
-      return res.input;
+      return res.input as any;
     }
-    return defaultValues;
+    return defaultValues as any;
   }
 
   function fieldErrorsToFormikErrors(fieldErrors: FieldError[]) {
     let errors: FormikErrors<TValues> = {};
+
     for (const { path, message } of fieldErrors) {
       let current: any = errors;
-      if (path.length === 0) {
-        continue;
-      }
-      const parts = [...path];
-      const lastPart = parts.pop()!;
-      if (lastPart === undefined) {
-        continue;
-      }
-      for (let index = 0; index < parts.length; index++) {
-        const part = parts[index];
-        const next = parts[index + 1];
+
+      for (let index = 0; index < path.length; index++) {
+        const part = path[index];
+        const next = path[index + 1];
         if (current[part] === undefined) {
           current[part] = typeof next === 'number' ? [] : {};
         }
-        current = current[part];
+
+        if (next === undefined) {
+          current[part] = message;
+        } else {
+          current = current[part];
+        }
       }
-      current[lastPart] = message;
     }
 
     return errors;
@@ -316,21 +318,19 @@ export function createForm<
       return undefined;
     }
 
-    const touched: Record<string, boolean> = {};
+    const touched: FormikTouched<TValues> = replaceLeafNodes(
+      defaultValues,
+      true
+    );
 
-    for (const key in defaultValues) {
-      // todo: not deep setting
-      touched[key] = true;
-    }
-
-    return touched as FormikTouched<TValues>;
+    return touched;
   }
   function useFormikScaffold<
     TProps extends TPageProps<TMutationData>,
     TMutationData
   >(props: TProps) {
     const [feedback, setFeedback] = useState(getFeedbackFromProps(props));
-
+    // console.log('getInitialErrors(props)', getInitialErrors(props));
     const MyForm = useCallback(
       (formProps: {
         children: (formikProps: FormikProps<TValues>) => ReactNode;
