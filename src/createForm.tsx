@@ -8,6 +8,7 @@ import * as Stream from 'stream';
 import url from 'url';
 import * as z from 'zod';
 import { ZodRawShape } from 'zod/lib/src/types/base';
+import { replaceLeafNodes, unflattenObject } from './objectUtils';
 import { getPostBody } from './getPostBody';
 function throwServerOnlyError(message: string): never {
   throw new Error(`You have access server-only functionality (${message})`);
@@ -98,13 +99,14 @@ export function createForm<
   type TPostResponse<TMutationData> = PostResponse<TMutationData, TValues>;
 
   async function performMutation<TMutationData>(
-    input: TValues,
+    _input: TValues,
     mutation: (data: TValues) => Promise<TMutationData>
   ): Promise<TPostResponse<TMutationData> | null> {
     if (!process.browser) {
-      if (!input) {
+      if (!_input) {
         return null;
       }
+      const input: TValues = unflattenObject(_input); // http posts doesn't give us structured json
       const parsed = schema.safeParse(input);
 
       if (!parsed.success) {
@@ -130,13 +132,13 @@ export function createForm<
         const data = await mutation(parsed.data);
         return {
           input,
-          success: true as const,
+          success: true,
           data,
         };
       } catch (err) {
         return {
           input,
-          success: false as const,
+          success: false,
           error: {
             type: 'MutationError',
             message: err.message,
@@ -316,21 +318,19 @@ export function createForm<
       return undefined;
     }
 
-    const touched: Record<string, boolean> = {};
+    const touched: FormikTouched<TValues> = replaceLeafNodes(
+      defaultValues,
+      true
+    );
 
-    for (const key in defaultValues) {
-      // todo: not deep setting
-      touched[key] = true;
-    }
-
-    return touched as FormikTouched<TValues>;
+    return touched;
   }
   function useFormikScaffold<
     TProps extends TPageProps<TMutationData>,
     TMutationData
   >(props: TProps) {
     const [feedback, setFeedback] = useState(getFeedbackFromProps(props));
-
+    // console.log('getInitialErrors(props)', getInitialErrors(props));
     const MyForm = useCallback(
       (formProps: {
         children: (formikProps: FormikProps<TValues>) => ReactNode;

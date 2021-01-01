@@ -3,14 +3,15 @@ import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import React, { useState } from 'react';
 import * as z from 'zod';
 import { createForm } from '../src';
-import { useSillyHook } from '../src/createForm';
 
 type DBUser = {
   id: string;
   message: string;
-  from: string;
   createdAt: string;
-  twitter?: undefined | string;
+  from: {
+    name: string;
+    twitter?: undefined | string;
+  };
 };
 
 const db = {
@@ -18,14 +19,10 @@ const db = {
     {
       id: '00000000-0000-0000-0000-000000000001',
       message: 'hello',
-      from: 'alexdotjs',
-      twitter: 'alexdotjs',
-      createdAt: new Date(2020, 12, 26).toJSON(),
-    },
-    {
-      id: '00000000-0000-0000-0000-000000000002',
-      message: 'world',
-      from: 'alexdotjs',
+      from: {
+        name: 'alexdotjs',
+        twitter: 'alexdotjs',
+      },
       createdAt: new Date(2020, 12, 26).toJSON(),
     },
   ] as DBUser[],
@@ -37,20 +34,20 @@ export const createPostForm = createForm({
       name: z.string().min(2),
       twitter: z
         .string()
-        .regex(/^[a-zA-Z0-9_]{1,15}$/, {
+        .refine(str => !str || /^[a-zA-Z0-9_]{1,15}/.test(str), {
           message: 'Not a valid twitter handle',
         })
         .optional(),
     }),
   }),
   defaultValues: {
-    message: '',
+    message: 'world',
     from: {
-      name: '',
-      twitter: '',
+      name: 'KATT',
+      twitter: 'alexdotjs',
     },
   },
-  formId: 'createPost',
+  formId: 'guestbook',
 });
 
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
@@ -58,6 +55,7 @@ type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
 function FieldAndError({ name, as }: { name: string; as?: string }) {
   const fmk = useFormikContext();
   const field = fmk.getFieldProps(name);
+  const errs = fmk.initialErrors;
   return (
     <p>
       <label>
@@ -78,18 +76,28 @@ export default function Home(props: Props) {
 
   return (
     <div>
-      <h1>Formik scaffold</h1>
-      <p>
-        Like the <a href="/">first example</a> but scaffold a lot of code for
-        you
-      </p>
+      <h1>
+        <code>useFormikScaffold()</code>
+      </h1>
       <p>This page works without JavaScript enabled!</p>
 
       <h2>My guestbook</h2>
       {posts.map(item => (
         <article key={item.id}>
           <strong>
-            From {item.from} at {item.createdAt}
+            From{' '}
+            {item.from.twitter ? (
+              <a
+                href={`https://twitter.com/${encodeURIComponent(
+                  item.from.twitter
+                )}`}
+              >
+                {item.from.name}
+              </a>
+            ) : (
+              item.from.name
+            )}{' '}
+            at {item.createdAt}
           </strong>
           <p className="message">{item.message}</p>
         </article>
