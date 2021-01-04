@@ -8,7 +8,7 @@
 - 🎷   E2E type safety! TypeScript types inferred between client & server with all the nice autocomplete jazz
 - 🔐   Server-side data validation that's propagated to page props & your `mutation`s' return values are inferred.
 - ☁️   Allows you to write data straight to the db with confidence
-- 🤘   Your page will works without JS enabled (if you want it to)
+- 🤘   Your page will wors without JS enabled (if you want it to)
 
 **(Peer) Dependencies:**
 
@@ -33,7 +33,7 @@
 
 ### 0. Install
 ```bash
-yarn add next-ssr-form@next zod formik
+yarn add next-ssr-form zod formik
 ```
 
 ### 1. Add form to top of page
