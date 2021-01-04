@@ -20,7 +20,7 @@
     "prepare": "tsdx build --tsconfig ./tsconfig.tsdx.json",
     "size": "size-limit",
     "analyze": "size-limit --why",
-    "bump-example": "cd examples/typescript && yarn add next-ssr-form@next && git add ../../. && git commit -m 'bump example' && git push",
+    "bump-example": "cd examples/typescript && yarn add next-ssr-form && git add ../../. && git commit -m 'bump example' && git push",
     "dev-next": "next dev"
   },
   "husky": {
