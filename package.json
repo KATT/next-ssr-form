@@ -11,6 +11,7 @@
   "engines": {
     "node": ">=12"
   },
+  "homepage": "https://github.com/KATT/next-ssr-form",
   "scripts": {
     "dev": "yarn start",
     "start": "tsdx watch --tsconfig ./tsconfig.tsdx.json",
